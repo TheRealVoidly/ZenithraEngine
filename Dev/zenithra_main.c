@@ -62,5 +62,3 @@ void Zenithra_MainGameLoop(struct in_engine_data *engineDataStr){
         Zenithra_Free((void*)&obj[i]);
     }
 }
-
-//TEST
