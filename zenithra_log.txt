@@ -1,0 +1,4 @@
+11:43:23: Zenithra engine started
+11:43:23: OpenGL initialized successfuly
+11:43:23: Zenithra initialized successfuly
+11:43:24: Zenithra exited succesfully
