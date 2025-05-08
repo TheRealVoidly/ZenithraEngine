@@ -1,7 +1,5 @@
 ---------------------------------------------
 TODO
----------------------------------------------
+---------------------------------------------o
 
 -- Create normal movement with collisions and gravity, and fly mode
-
--- Investigate distortion

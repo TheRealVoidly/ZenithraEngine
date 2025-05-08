@@ -21,8 +21,9 @@ void Zenithra_MainGameLoop(struct in_engine_data *engineDataStr){
     struct object_data **obj;
     obj = (struct object_data**)malloc(2 * sizeof(struct object_data*));
     obj[0] = Zenithra_LoadOBJ(engineDataStr, "./Objects/plane.obj");
-    //obj[1] = Zenithra_LoadOBJ(engineDataStr, "./Objects/thing.obj");
-    GLuint texID = Zenithra_CreateTexture("./Textures/gravel.DDS");
+    obj[1] = Zenithra_LoadOBJ(engineDataStr, "./Objects/thing.obj");
+    GLuint texGiga = Zenithra_CreateTexture("./Textures/mugshot1.DDS");
+    GLuint texGravel = Zenithra_CreateTexture("./Textures/gravel.DDS");
 
 
     mat4 modelMatrices[engineDataStr->objNum];
@@ -30,10 +31,10 @@ void Zenithra_MainGameLoop(struct in_engine_data *engineDataStr){
         glm_mat4_identity(modelMatrices[i]);
     }
 
-    /*obj[1]->translationVector[0] = -10.0f; //Move model matrix num 1
-    obj[1]->translationVector[1] = 0.0f;
+    obj[1]->translationVector[0] = -10.0f; //Move model matrix num 1
+    obj[1]->translationVector[1] = 10.0f;
     obj[1]->translationVector[2] = 0.0f;
-    glm_translate(modelMatrices[1], obj[1]->translationVector);*/
+    glm_translate(modelMatrices[1], obj[1]->translationVector);
 
     do{
         lastFrameTime = currentFrameTime;
@@ -46,11 +47,12 @@ void Zenithra_MainGameLoop(struct in_engine_data *engineDataStr){
         }
         programShouldQuit = Zenithra_HandleEventPoll(engineDataStr);
 
+        glClearColor(0.03f, 0.0f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(engineDataStr->GL->programID);
 
-        Zenithra_RenderObject(engineDataStr, obj, modelMatrices, 0, texID);
-        //Zenithra_RenderObject(engineDataStr, obj, modelMatrices, 1, 0);
+        Zenithra_RenderObject(engineDataStr, obj, modelMatrices, 0, texGravel);
+        Zenithra_RenderObject(engineDataStr, obj, modelMatrices, 1, texGiga);
 
         SDL_GL_SwapWindow(engineDataStr->SDL->window);
     }while(!programShouldQuit);
