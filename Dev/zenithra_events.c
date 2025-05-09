@@ -22,23 +22,10 @@ bool Zenithra_HandleEventPoll(struct in_engine_data *engineDataStr){
 			engineDataStr->SDL->focusLost = false;
 			engineDataStr->KEYS->escape = true;
 		}
-		if(keyState[SDL_SCANCODE_RSHIFT] && !engineDataStr->MOVE->fly && !engineDataStr->KEYS->rShift){
-			engineDataStr->MOVE->fly = true;
-			engineDataStr->KEYS->rShift = true;
-		}
-		if(keyState[SDL_SCANCODE_RSHIFT] && engineDataStr->MOVE->fly && !engineDataStr->KEYS->rShift){
-			engineDataStr->MOVE->fly = false;
-			engineDataStr->KEYS->rShift = true;
-		}
 
 		if(engineDataStr->KEYS->escape){
 			if(!keyState[SDL_SCANCODE_ESCAPE]){
 				engineDataStr->KEYS->escape = false;
-			}
-		}
-		if(engineDataStr->KEYS->rShift){
-			if(!keyState[SDL_SCANCODE_RSHIFT]){
-				engineDataStr->KEYS->rShift = false;
 			}
 		}
 	}

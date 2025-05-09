@@ -63,7 +63,7 @@ typedef struct movement_engine_data{
     float speed;
     float mouseSpeed;
     float gravity;
-    bool fly;
+    int xPos, yPos;
 }MOVE;
 
 typedef struct keys_engine_data{
@@ -126,10 +126,3 @@ GLuint Zenithra_LoadShaders(struct in_engine_data *engineDataStr);
 GLuint Zenithra_CreateTexture(const char* fileName);
 struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const char* fileName);
 void Zenithra_RenderObject(struct in_engine_data *engineDataStr, struct object_data **obj, mat4 *modelMatrices, int objNum, GLuint texID);
-
-//-----------------------------------------------
-//Main
-//-----------------------------------------------
-
-void Zenithra_MainGameLoop(struct in_engine_data *engineDataStr);
-void Zenithra_CalcMVP(struct in_engine_data *engineDataStr);
