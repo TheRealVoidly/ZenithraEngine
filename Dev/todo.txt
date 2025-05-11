@@ -2,6 +2,8 @@
 TODO
 ---------------------------------------------
 
+-- Fix -nan -nan -nan engineDataStr->MOVE->directionLook when looking in certain direction
+
 -- Write comments
 
 -- Create an editor

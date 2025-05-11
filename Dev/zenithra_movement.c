@@ -18,17 +18,22 @@ void Zenithra_CalcMouseMovement(struct in_engine_data *engineDataStr){
 	engineDataStr->MOVE->horizontalAngle += engineDataStr->MOVE->mouseSpeed * (float)(engineDataStr->window_x / 2.0f - engineDataStr->MOVE->xPos);
 	engineDataStr->MOVE->verticalAngle += engineDataStr->MOVE->mouseSpeed * (float)(engineDataStr->window_y / 2.0f - engineDataStr->MOVE->yPos);
 
+	printf("%f\n", engineDataStr->MOVE->horizontalAngle);
+	printf("%f\n", engineDataStr->MOVE->verticalAngle);
+
 	if(oldxPos != engineDataStr->MOVE->xPos || oldyPos != engineDataStr->MOVE->yPos){
 		float walkVector[3] = {
 			cos(engineDataStr->MOVE->verticalAngle) * sin(engineDataStr->MOVE->horizontalAngle),
 			sin(engineDataStr->MOVE->verticalAngle),
 			cos(engineDataStr->MOVE->verticalAngle) * cos(engineDataStr->MOVE->horizontalAngle)
 		};
-		glm_vec3_make(walkVector, engineDataStr->MOVE->directionWalk);
+		glm_vec3_make(walkVector, engineDataStr->MOVE->directionLook);
 		
+		printf("%f %f %f\n", walkVector[0], walkVector[1], walkVector[2]);
+
 		mat4 view;
 		vec3 positionDirection;
-		glm_vec3_add(engineDataStr->MOVE->directionWalk, engineDataStr->MOVE->position, positionDirection);
+		glm_vec3_add(engineDataStr->MOVE->directionLook, engineDataStr->MOVE->position, positionDirection);
 		vec3 up = {0.0f, 1.0f, 0.0f};
 		glm_lookat(engineDataStr->MOVE->position, positionDirection, up, view);
 	}
@@ -42,7 +47,7 @@ void Zenithra_UpdatePosition(struct in_engine_data *engineDataStr){
 		sin(engineDataStr->MOVE->verticalAngle),
 		cos(engineDataStr->MOVE->verticalAngle) * cos(engineDataStr->MOVE->horizontalAngle)
 	};
-	glm_vec3_make(walkVector, engineDataStr->MOVE->directionWalk);
+	glm_vec3_make(walkVector, engineDataStr->MOVE->directionLook);
 
 	float strafeVector[3] = {
 		sin(engineDataStr->MOVE->horizontalAngle - 3.14f / 2.0f),
@@ -69,12 +74,12 @@ void Zenithra_UpdatePosition(struct in_engine_data *engineDataStr){
 		glm_vec3_sub(engineDataStr->MOVE->position, dts, engineDataStr->MOVE->position);
 	}
 	if(keyState[SDL_SCANCODE_W]){
-		glm_vec3_mul(engineDataStr->MOVE->directionWalk, deltaTime, dts);
+		glm_vec3_mul(engineDataStr->MOVE->directionLook, deltaTime, dts);
 		glm_vec3_mul(dts, speed, dts);
 		glm_vec3_add(engineDataStr->MOVE->position, dts, engineDataStr->MOVE->position);
 	}
 	if(keyState[SDL_SCANCODE_S]){
-		glm_vec3_mul(engineDataStr->MOVE->directionWalk, deltaTime, dts);
+		glm_vec3_mul(engineDataStr->MOVE->directionLook, deltaTime, dts);
 		glm_vec3_mul(dts, speed, dts);
 		glm_vec3_sub(engineDataStr->MOVE->position, dts, engineDataStr->MOVE->position);
 	}

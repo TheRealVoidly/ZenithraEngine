@@ -54,7 +54,7 @@ typedef struct gl_engine_data{
 
 typedef struct movement_engine_data{
     vec3 position;
-    vec3 directionWalk;
+    vec3 directionLook;
     vec3 directionStrafe;
     vec3 directionVertical;
     float horizontalAngle;

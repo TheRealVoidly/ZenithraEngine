@@ -279,7 +279,7 @@ void Zenithra_RenderObject(struct in_engine_data *engineDataStr, struct object_d
 	glm_perspective(glm_rad(engineDataStr->MOVE->FOV), (float) engineDataStr->window_x / (float) engineDataStr->window_y, 1.0f, 1000.0f, projection);
 
 	vec3 positionDirection;
-	glm_vec3_add(engineDataStr->MOVE->directionWalk, engineDataStr->MOVE->position, positionDirection);
+	glm_vec3_add(engineDataStr->MOVE->directionLook, engineDataStr->MOVE->position, positionDirection);
 	vec3 up = {0.0f, 1.0f, 0.0f};
 	glm_lookat(engineDataStr->MOVE->position, positionDirection, up, view);
 

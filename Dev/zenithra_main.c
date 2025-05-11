@@ -55,10 +55,11 @@ void Zenithra_TestEditor(struct in_engine_data *engineDataStr){
         glm_mat4_identity(modelMatrices[i]);
     }
 
-    /*obj[1]->translationVector[0] = -10.0f; //Move model matrix num 1
+    obj[1]->translationVector[0] = -10.0f; //Move model matrix num 1
     obj[1]->translationVector[1] = 10.0f;
     obj[1]->translationVector[2] = 0.0f;
-    glm_translate(modelMatrices[1], obj[1]->translationVector);*/
+    glm_translate(modelMatrices[1], obj[1]->translationVector);
+
 
     do{
         lastFrameTime = currentFrameTime;
@@ -66,6 +67,7 @@ void Zenithra_TestEditor(struct in_engine_data *engineDataStr){
         engineDataStr->deltaTime = (double)((currentFrameTime - lastFrameTime) * 1000 / (double)SDL_GetPerformanceFrequency());
 
         Uint32 mouseButtonPressed = SDL_GetMouseState(NULL, NULL);
+
         if(!engineDataStr->SDL->focusLost){
             Zenithra_CalcMouseMovement(engineDataStr);
 
@@ -88,26 +90,19 @@ void Zenithra_TestEditor(struct in_engine_data *engineDataStr){
         }
         glUseProgram(engineDataStr->GL->programID);
 
-        /*if(SDL_BUTTON(1) == mouseButtonPressed){
-            int mouseX, mouseY;
-            SDL_GetMouseState(&mouseX, &mouseY);
+        //if(SDL_BUTTON(1) == mouseButtonPressed){
+            float length = sqrtf(engineDataStr->MOVE->directionLook[0]*engineDataStr->MOVE->directionLook[0] + engineDataStr->MOVE->directionLook[1]*engineDataStr->MOVE->directionLook[1] + engineDataStr->MOVE->directionLook[2]);
+            engineDataStr->MOVE->directionLook[0] /= length;
+            engineDataStr->MOVE->directionLook[1] /= length;
+            engineDataStr->MOVE->directionLook[2] /= length;
 
-            float x = (2.0f * mouseX) / engineDataStr->window_x - 1.0f;
-            float y = 1.0f - (2.0f * mouseY) / engineDataStr->window_y;
+            float boxMin[3] = { -11.0f, 11.0f, -1.0f };
+            float boxMax[3] = {  -12.0f,  12.0f, 1.0f };
 
-            float rayDir[3] = { x, y, -1.0f };
-            float length = sqrtf(x*x + y*y + 1.0f);
-            rayDir[0] /= length;
-            rayDir[1] /= length;
-            rayDir[2] /= length;
-
-            float boxMin[3] = { -1.0f, -1.0f, -1.0f };
-            float boxMax[3] = {  1.0f,  1.0f,  1.0f };
-
-            if (ray_intersects_aabb(engineDataStr->MOVE->position, rayDir, boxMin, boxMax)) {
+            if (ray_intersects_aabb(engineDataStr->MOVE->position, engineDataStr->MOVE->directionLook, boxMin, boxMax)) {
                 printf("Mouse is hovering over the object!\n");
             }
-        }*/
+        //}
 
         Zenithra_RenderObject(engineDataStr, obj, modelMatrices, 0, texGravel);
         Zenithra_RenderObject(engineDataStr, obj, modelMatrices, 1, texGiga);
