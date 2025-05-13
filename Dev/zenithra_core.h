@@ -19,7 +19,6 @@
 #include<SDL2/SDL_opengl.h>
 #include<cglm/cglm.h>
 #include"zenithra_debug.h"
-#include"zenithra_lists.h"
 
 #define DEV_MODE
 
@@ -112,6 +111,21 @@ bool Zenithra_HandleEventPoll(struct in_engine_data *engineDataStr);
 //-----------------------------------------------
 //Graphics
 //-----------------------------------------------
+
+struct list_temp_vec3{
+    struct list_temp_vec3 *next;
+    float data[3];
+};
+
+struct list_temp_vec2{
+    struct list_temp_vec2 *next;
+    float data[2];
+};
+
+struct list_temp_mat3{
+    struct list_temp_mat3 *next;
+    int data[3][3];
+};
 
 struct object_data{
     long objSize;

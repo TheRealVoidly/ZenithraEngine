@@ -4,7 +4,7 @@
 void Zenithra_MainGameLoop(struct in_engine_data *engineDataStr);
 void Zenithra_TestEditor(struct in_engine_data *engineDataStr);
 
-bool ray_intersects_aabb(float origin[3], float dir[3], float min[3], float max[3]) {
+bool Zenithra_RayIntersects(float origin[3], float dir[3], float min[3], float max[3]) {
     float tmin = (min[0] - origin[0]) / dir[0];
     float tmax = (max[0] - origin[0]) / dir[0];
     if (tmin > tmax) { float tmp = tmin; tmin = tmax; tmax = tmp; }
@@ -90,8 +90,8 @@ void Zenithra_TestEditor(struct in_engine_data *engineDataStr){
         }
         glUseProgram(engineDataStr->GL->programID);
 
-        //if(SDL_BUTTON(1) == mouseButtonPressed){
-            float length = sqrtf(engineDataStr->MOVE->directionLook[0]*engineDataStr->MOVE->directionLook[0] + engineDataStr->MOVE->directionLook[1]*engineDataStr->MOVE->directionLook[1] + engineDataStr->MOVE->directionLook[2]);
+        if(SDL_BUTTON(1) == mouseButtonPressed){
+            float length = sqrtf(engineDataStr->MOVE->directionLook[0]*engineDataStr->MOVE->directionLook[0] + engineDataStr->MOVE->directionLook[1]*engineDataStr->MOVE->directionLook[1] + 1.0f);
             engineDataStr->MOVE->directionLook[0] /= length;
             engineDataStr->MOVE->directionLook[1] /= length;
             engineDataStr->MOVE->directionLook[2] /= length;
@@ -99,10 +99,10 @@ void Zenithra_TestEditor(struct in_engine_data *engineDataStr){
             float boxMin[3] = { -11.0f, 11.0f, -1.0f };
             float boxMax[3] = {  -12.0f,  12.0f, 1.0f };
 
-            if (ray_intersects_aabb(engineDataStr->MOVE->position, engineDataStr->MOVE->directionLook, boxMin, boxMax)) {
+            if (Zenithra_RayIntersects(engineDataStr->MOVE->position, engineDataStr->MOVE->directionLook, boxMin, boxMax)) {
                 printf("Mouse is hovering over the object!\n");
             }
-        //}
+        }
 
         Zenithra_RenderObject(engineDataStr, obj, modelMatrices, 0, texGravel);
         Zenithra_RenderObject(engineDataStr, obj, modelMatrices, 1, texGiga);

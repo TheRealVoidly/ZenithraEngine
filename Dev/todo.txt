@@ -2,15 +2,16 @@
 TODO
 -------------------------------------------------------
 
--- Get rid of main.c
+-- Get rid of main.c ?
     -- Create a test "game".. Call functions by loading dlls ?
     -- Copying engine files, EngineData folder containing objects etc. into game folder / creating new game and dynamically pointing to engine folder containing files like objects
-
--- Merge lists.h into core.h
 
 -- Write comments
 
 -- Create an editor
-    -- Fix -nan -nan -nan engineDataStr->MOVE->directionLook when looking in certain direction
+    -- Add real time object loading
+    -- Detect hover over object and load in direction arrows
+    	-- Model the arrows
+    	-- Make the arrows interactable with LMB and move the object
 
 -- Create normal movement with collisions and gravity, and fly mode.. Maybe game's task ?
