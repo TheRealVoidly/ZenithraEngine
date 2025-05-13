@@ -1,11 +1,15 @@
----------------------------------------------
+-------------------------------------------------------
 TODO
----------------------------------------------
+-------------------------------------------------------
 
--- Fix -nan -nan -nan engineDataStr->MOVE->directionLook when looking in certain direction
+-- Get rid of main.c
+    -- Create a test "game".. Call functions by loading dlls ?
+
+-- Merge lists.h into core.h
 
 -- Write comments
 
 -- Create an editor
+    -- Fix -nan -nan -nan engineDataStr->MOVE->directionLook when looking in certain direction
 
--- Create normal movement with collisions and gravity, and fly mode
+-- Create normal movement with collisions and gravity, and fly mode.. Maybe game's task ?
