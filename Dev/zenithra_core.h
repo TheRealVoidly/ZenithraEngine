@@ -136,6 +136,8 @@ struct object_data{
     vec3 translationVector;
 
     GLfloat *vertex_buffer_data;
+
+    long triangles;
 };
 
 GLuint Zenithra_LoadShaders(struct in_engine_data *engineDataStr);

@@ -2,6 +2,8 @@
 TODO
 -------------------------------------------------------
 
+-- Fix camera free rotation causing mouse invert
+
 -- Get rid of main.c ?
     -- Create a test "game".. Call functions by loading dlls ?
     -- Copying engine files, EngineData folder containing objects etc. into game folder / creating new game and dynamically pointing to engine folder containing files like objects

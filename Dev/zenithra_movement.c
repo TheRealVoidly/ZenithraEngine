@@ -18,9 +18,6 @@ void Zenithra_CalcMouseMovement(struct in_engine_data *engineDataStr){
 	engineDataStr->MOVE->horizontalAngle += engineDataStr->MOVE->mouseSpeed * (float)(engineDataStr->window_x / 2.0f - engineDataStr->MOVE->xPos);
 	engineDataStr->MOVE->verticalAngle += engineDataStr->MOVE->mouseSpeed * (float)(engineDataStr->window_y / 2.0f - engineDataStr->MOVE->yPos);
 
-	printf("%f\n", engineDataStr->MOVE->horizontalAngle);
-	printf("%f\n", engineDataStr->MOVE->verticalAngle);
-
 	if(oldxPos != engineDataStr->MOVE->xPos || oldyPos != engineDataStr->MOVE->yPos){
 		float walkVector[3] = {
 			cos(engineDataStr->MOVE->verticalAngle) * sin(engineDataStr->MOVE->horizontalAngle),
@@ -28,8 +25,6 @@ void Zenithra_CalcMouseMovement(struct in_engine_data *engineDataStr){
 			cos(engineDataStr->MOVE->verticalAngle) * cos(engineDataStr->MOVE->horizontalAngle)
 		};
 		glm_vec3_make(walkVector, engineDataStr->MOVE->directionLook);
-		
-		printf("%f %f %f\n", walkVector[0], walkVector[1], walkVector[2]);
 
 		mat4 view;
 		vec3 positionDirection;
