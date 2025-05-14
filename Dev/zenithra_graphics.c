@@ -102,8 +102,10 @@ struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const
 	}
 	fclose(fp);
 
-	GLfloat *vertex_buffer_data, *uvs_buffer_data, *normals_buffer_data;
-	vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * triangles * 3 * 3 + 48);
+	struct object_data *obj = (void*)malloc(sizeof(struct object_data));
+
+	GLfloat *uvs_buffer_data, *normals_buffer_data;
+	obj->vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * triangles * 3 * 3 + 48);
 	uvs_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * triangles * 3 * 2 + 24);
 	normals_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * triangles * 3 * 3 + 48);
 
@@ -128,9 +130,9 @@ struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const
 			normals_buffer_data[a] = node_norm->data[0];
 			normals_buffer_data[a+1] = node_norm->data[1];
 			normals_buffer_data[a+2] = node_norm->data[2];
-			vertex_buffer_data[a] = node_vert->data[0];
-			vertex_buffer_data[a+1] = node_vert->data[1];
-			vertex_buffer_data[a+2] = node_vert->data[2];
+			obj->vertex_buffer_data[a] = node_vert->data[0];
+			obj->vertex_buffer_data[a+1] = node_vert->data[1];
+			obj->vertex_buffer_data[a+2] = node_vert->data[2];
 			a += 3;
 			b += 2;
 		}
@@ -141,13 +143,11 @@ struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const
 		node_face = node_face->next;
 	}
 
-	struct object_data *obj = (void*)malloc(sizeof(struct object_data));
-
 	obj->objSize = triangles * 3;
 
 	glGenBuffers(1, &obj->objVertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, obj->objVertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data) * triangles * 3 * 3 + 48, &vertex_buffer_data[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(obj->vertex_buffer_data) * triangles * 3 * 3 + 48, &obj->vertex_buffer_data[0], GL_STATIC_DRAW);
 
 	glGenBuffers(1, &obj->objUVBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, obj->objUVBuffer);
@@ -157,7 +157,7 @@ struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const
 	glBindBuffer(GL_ARRAY_BUFFER, obj->objNormalBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(normals_buffer_data) * triangles * 3 * 3 + 48, &normals_buffer_data[0], GL_STATIC_DRAW);
 
-	Zenithra_Free((void*)&vertex_buffer_data);
+	//Zenithra_Free((void*)&vertex_buffer_data);
 	Zenithra_Free((void*)&uvs_buffer_data);
 	Zenithra_Free((void*)&normals_buffer_data);
 

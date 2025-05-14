@@ -134,6 +134,8 @@ struct object_data{
     GLuint objUVBuffer;
 
     vec3 translationVector;
+
+    GLfloat *vertex_buffer_data;
 };
 
 GLuint Zenithra_LoadShaders(struct in_engine_data *engineDataStr);

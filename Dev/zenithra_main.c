@@ -4,25 +4,85 @@
 void Zenithra_MainGameLoop(struct in_engine_data *engineDataStr);
 void Zenithra_TestEditor(struct in_engine_data *engineDataStr);
 
-bool Zenithra_RayIntersects(float origin[3], float dir[3], float min[3], float max[3]) {
-    float tmin = (min[0] - origin[0]) / dir[0];
-    float tmax = (max[0] - origin[0]) / dir[0];
-    if (tmin > tmax) { float tmp = tmin; tmin = tmax; tmax = tmp; }
+bool Zenithra_RayIntersects(float origin[3], float dir[3], struct object_data *obj) {
+    int i, x = 0;
+    float tmin, tmax, tmp, tymin, tymax, tzmin, tzmax;
+    for(i = 0; i <= obj->objSize-5; i=i+3){
+        tmin = (obj->vertex_buffer_data[i+0] - origin[0]) / dir[0];
+        tmax = (obj->vertex_buffer_data[i+3] - origin[0]) / dir[0];
+        if(tmin > tmax){
+            tmp = tmin;
+            tmin = tmax;
+            tmax = tmp;
+        }
 
-    float tymin = (min[1] - origin[1]) / dir[1];
-    float tymax = (max[1] - origin[1]) / dir[1];
-    if (tymin > tymax) { float tmp = tymin; tymin = tymax; tymax = tmp; }
+        tymin = (obj->vertex_buffer_data[i+1] - origin[1]) / dir[1];
+        tymax = (obj->vertex_buffer_data[i+4] - origin[1]) / dir[1];
+        if(tymin > tymax){
+            tmp = tymin;
+            tymin = tymax;
+            tymax = tmp;
+        }
 
-    if ((tmin > tymax) || (tymin > tmax)) return false;
-    if (tymin > tmin) tmin = tymin;
-    if (tymax < tmax) tmax = tymax;
+        if(tymin > tmin){
+            tmin = tymin;
+        }
+        if(tymax < tmax){
+            tmax = tymax;
+        }
+        tzmin = (obj->vertex_buffer_data[i+2] - origin[2]) / dir[2];
+        tzmax = (obj->vertex_buffer_data[i+5] - origin[2]) / dir[2];
+        if(tzmin > tzmax){
+            tmp = tzmin;
+            tzmin = tzmax;
+            tzmax = tmp;
+        }
 
-    float tzmin = (min[2] - origin[2]) / dir[2];
-    float tzmax = (max[2] - origin[2]) / dir[2];
-    if (tzmin > tzmax) { float tmp = tzmin; tzmin = tzmax; tzmax = tmp; }
+        if((tmin < tzmax) || (tzmin < tmax)){
+            if((tmin < tymax) || (tymin < tmax)){
+                return true;
+            }
+        }
+    }
+    return false;
 
-    if ((tmin > tzmax) || (tzmin > tmax)) return false;
-    return true;
+    /*tmin = (min[0] - origin[0]) / dir[0];
+    tmax = (max[0] - origin[0]) / dir[0];
+    if(tmin > tmax){
+        tmp = tmin;
+        tmin = tmax;
+        tmax = tmp;
+    }
+
+    tymin = (min[1] - origin[1]) / dir[1];
+    tymax = (max[1] - origin[1]) / dir[1];
+    if(tymin > tymax){
+        tmp = tymin;
+        tymin = tymax;
+        tymax = tmp;
+    }
+
+    if((tmin > tymax) || (tymin > tmax)){
+        return false;
+    }
+    if(tymin > tmin){
+        tmin = tymin;
+    }
+    if(tymax < tmax){
+        tmax = tymax;
+    }
+    tzmin = (min[2] - origin[2]) / dir[2];
+    tzmax = (max[2] - origin[2]) / dir[2];
+    if(tzmin > tzmax){
+        tmp = tzmin;
+        tzmin = tzmax;
+        tzmax = tmp;
+    }
+
+    if((tmin > tzmax) || (tzmin > tmax)){
+        return false;
+    }
+    return true;*/
 }
 
 int main(int argc, char *argv[]){
@@ -90,18 +150,13 @@ void Zenithra_TestEditor(struct in_engine_data *engineDataStr){
         }
         glUseProgram(engineDataStr->GL->programID);
 
-        if(SDL_BUTTON(1) == mouseButtonPressed){
-            float length = sqrtf(engineDataStr->MOVE->directionLook[0]*engineDataStr->MOVE->directionLook[0] + engineDataStr->MOVE->directionLook[1]*engineDataStr->MOVE->directionLook[1] + 1.0f);
-            engineDataStr->MOVE->directionLook[0] /= length;
-            engineDataStr->MOVE->directionLook[1] /= length;
-            engineDataStr->MOVE->directionLook[2] /= length;
+        float length = sqrtf(engineDataStr->MOVE->directionLook[0]*engineDataStr->MOVE->directionLook[0] + engineDataStr->MOVE->directionLook[1]*engineDataStr->MOVE->directionLook[1] + 1.0f);
+        engineDataStr->MOVE->directionLook[0] /= length;
+        engineDataStr->MOVE->directionLook[1] /= length;
+        engineDataStr->MOVE->directionLook[2] /= length;
 
-            float boxMin[3] = { -11.0f, 11.0f, -1.0f };
-            float boxMax[3] = {  -12.0f,  12.0f, 1.0f };
-
-            if (Zenithra_RayIntersects(engineDataStr->MOVE->position, engineDataStr->MOVE->directionLook, boxMin, boxMax)) {
-                printf("Mouse is hovering over the object!\n");
-            }
+        if (Zenithra_RayIntersects(engineDataStr->MOVE->position, engineDataStr->MOVE->directionLook, obj[1])) {
+            printf("Mouse is hovering over the object!\n");
         }
 
         Zenithra_RenderObject(engineDataStr, obj, modelMatrices, 0, texGravel);
