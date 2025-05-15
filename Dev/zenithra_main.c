@@ -6,7 +6,7 @@ void Zenithra_TestEditor(struct in_engine_data *engineDataStr);
 int* Zenithra_ObjectRayIntersectsDetection(float origin[3], struct object_data **obj, struct in_engine_data *engineDataStr) {
     int i, j, k, l = 0, *n;
     float dir[3], edge1[3], edge2[3], h[3], s[3], q[3];
-    float length, temp, a, f, u, v, t, *v0, *v1, *v2;
+    float length, temp, a, f, u, v, t, *v0, *v1, *v2, distance;
     n = malloc(sizeof(int) * 2);
     n[0] = 0;
     n[1] = 0;
@@ -44,7 +44,11 @@ int* Zenithra_ObjectRayIntersectsDetection(float origin[3], struct object_data *
     q[2] = s[0]*edge1[1] - s[1]*edge1[0];
 
     v = f * (dir[0]*q[0] + dir[1]*q[1] + dir[2]*q[2]);
-    temp = v;
+
+    t = f * (edge2[0]*q[0] + edge2[1]*q[1] + edge2[2]*q[2]);
+
+    distance = t * sqrt(dir[0]*dir[0] + dir[1]*dir[1] + dir[2]*dir[2]);
+    temp = distance;
 
     for(j = 0; j < engineDataStr->objNum; j++){
         for(i = 0; i < obj[j]->objSize-3; i=i+3){
@@ -87,15 +91,13 @@ int* Zenithra_ObjectRayIntersectsDetection(float origin[3], struct object_data *
             }
 
             t = f * (edge2[0]*q[0] + edge2[1]*q[1] + edge2[2]*q[2]);
+            distance = t * sqrt(dir[0]*dir[0] + dir[1]*dir[1] + dir[2]*dir[2]);
             if(t > 0.0000001){
                 n[0] = 1;
-                //n[1] = j;
-                //return n;
-                if(v < temp){
+                if(distance < temp){
                     n[1] = j;
-                    temp = v;
+                    temp = distance;
                 }
-                printf("%d %f %f\n", n[1], v, temp);
             }
         }
     }
@@ -159,12 +161,13 @@ void Zenithra_TestEditor(struct in_engine_data *engineDataStr){
         glUseProgram(engineDataStr->GL->programID);
 
         objectRay = Zenithra_ObjectRayIntersectsDetection(engineDataStr->MOVE->position, obj, engineDataStr);
-        if(objectRay[0] == 1 && SDL_BUTTON(1) == mouseButtonPressed){
-            for(i = 1; i <= (obj[objectRay[1]]->triangles*3*3+48)-3; i=i+3){
+        if(objectRay[0] == 1){
+            printf("Cursor is hovering over object num %d\n", objectRay[1]);
+            /*for(i = 1; i <= (obj[objectRay[1]]->triangles*3*3+48)-3; i=i+3){
                 obj[objectRay[1]]->vertex_buffer_data[i] += 10.0f;
             }
             glBindBuffer(GL_ARRAY_BUFFER, obj[objectRay[1]]->objVertexBuffer);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(obj[objectRay[1]]->vertex_buffer_data) * obj[objectRay[1]]->triangles * 3 * 3 + 48, &obj[objectRay[1]]->vertex_buffer_data[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(obj[objectRay[1]]->vertex_buffer_data) * obj[objectRay[1]]->triangles * 3 * 3 + 48, &obj[objectRay[1]]->vertex_buffer_data[0], GL_STATIC_DRAW);*/
         }
 
         Zenithra_RenderObject(engineDataStr, obj, 0, texGravel);
