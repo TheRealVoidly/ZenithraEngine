@@ -4,8 +4,9 @@
 void Zenithra_TestEditor(struct in_engine_data *engineDataStr);
 
 int* Zenithra_ObjectRayIntersectsDetection(float origin[3], struct object_data **obj, struct in_engine_data *engineDataStr) {
-    int i, j, k, *n;
-    float length, dir[3];
+    int i, j, k, l = 0, *n;
+    float dir[3], edge1[3], edge2[3], h[3], s[3], q[3];
+    float length, temp, a, f, u, v, t, *v0, *v1, *v2;
     n = malloc(sizeof(int) * 2);
     n[0] = 0;
     n[1] = 0;
@@ -15,14 +16,41 @@ int* Zenithra_ObjectRayIntersectsDetection(float origin[3], struct object_data *
     dir[1] = (engineDataStr->MOVE->directionLook[1] /= length);
     dir[2] = (engineDataStr->MOVE->directionLook[2] /= length);
 
-    for(j = 0; j <= engineDataStr->objNum; j++){
-        for(i = 0; i < obj[j]->objSize-3; i=i+3){
-            float edge1[3], edge2[3], h[3], s[3], q[3];
-            float a, f, u, v, t;
+    v0 = &obj[0]->vertex_buffer_data[0];
+    v1 = &obj[0]->vertex_buffer_data[3];
+    v2 = &obj[0]->vertex_buffer_data[6];
 
-            float *v0 = &obj[j]->vertex_buffer_data[i + 0];
-            float *v1 = &obj[j]->vertex_buffer_data[i + 3];
-            float *v2 = &obj[j]->vertex_buffer_data[i + 6];
+    for(k = 0; k < 3; k++){
+        edge1[k] = v1[k] - v0[k];
+    }
+    for(k = 0; k < 3; k++){
+        edge2[k] = v2[k] - v0[k];
+    }
+    h[0] = dir[1]*edge2[2] - dir[2]*edge2[1];
+    h[1] = dir[2]*edge2[0] - dir[0]*edge2[2];
+    h[2] = dir[0]*edge2[1] - dir[1]*edge2[0];
+
+    a = edge1[0]*h[0] + edge1[1]*h[1] + edge1[2]*h[2];
+
+    f = 1.0 / a;
+    for(k = 0; k < 3; k++){
+        s[k] = origin[k] - v0[k];
+    }
+
+    u = f * (s[0]*h[0] + s[1]*h[1] + s[2]*h[2]);
+
+    q[0] = s[1]*edge1[2] - s[2]*edge1[1];
+    q[1] = s[2]*edge1[0] - s[0]*edge1[2];
+    q[2] = s[0]*edge1[1] - s[1]*edge1[0];
+
+    v = f * (dir[0]*q[0] + dir[1]*q[1] + dir[2]*q[2]);
+    temp = v;
+
+    for(j = 0; j < engineDataStr->objNum; j++){
+        for(i = 0; i < obj[j]->objSize-3; i=i+3){
+            v0 = &obj[j]->vertex_buffer_data[i + 0];
+            v1 = &obj[j]->vertex_buffer_data[i + 3];
+            v2 = &obj[j]->vertex_buffer_data[i + 6];
 
             for(k = 0; k < 3; k++){
                 edge1[k] = v1[k] - v0[k];
@@ -61,8 +89,13 @@ int* Zenithra_ObjectRayIntersectsDetection(float origin[3], struct object_data *
             t = f * (edge2[0]*q[0] + edge2[1]*q[1] + edge2[2]*q[2]);
             if(t > 0.0000001){
                 n[0] = 1;
-                n[1] = engineDataStr->objNum;
-                return n;
+                //n[1] = j;
+                //return n;
+                if(v < temp){
+                    n[1] = j;
+                    temp = v;
+                }
+                printf("%d %f %f\n", n[1], v, temp);
             }
         }
     }
@@ -126,8 +159,8 @@ void Zenithra_TestEditor(struct in_engine_data *engineDataStr){
         glUseProgram(engineDataStr->GL->programID);
 
         objectRay = Zenithra_ObjectRayIntersectsDetection(engineDataStr->MOVE->position, obj, engineDataStr);
-        if (objectRay[0] == 1 && SDL_BUTTON(1) == mouseButtonPressed) {
-            for(i = 1; i <= obj[objectRay[1]]->triangles*3*3+48; i=i+3){
+        if(objectRay[0] == 1 && SDL_BUTTON(1) == mouseButtonPressed){
+            for(i = 1; i <= (obj[objectRay[1]]->triangles*3*3+48)-3; i=i+3){
                 obj[objectRay[1]]->vertex_buffer_data[i] += 10.0f;
             }
             glBindBuffer(GL_ARRAY_BUFFER, obj[objectRay[1]]->objVertexBuffer);
