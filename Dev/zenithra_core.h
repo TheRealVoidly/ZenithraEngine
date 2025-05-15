@@ -143,4 +143,4 @@ struct object_data{
 GLuint Zenithra_LoadShaders(struct in_engine_data *engineDataStr);
 GLuint Zenithra_CreateTexture(const char* fileName);
 struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const char* fileName);
-void Zenithra_RenderObject(struct in_engine_data *engineDataStr, struct object_data **obj, mat4 *modelMatrices, int objNum, GLuint texID);
+void Zenithra_RenderObject(struct in_engine_data *engineDataStr, struct object_data **obj, int objNum, GLuint texID);

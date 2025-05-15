@@ -273,7 +273,7 @@ GLuint Zenithra_CreateTexture(const char* fileName){
 	return textureID;
 }
 
-void Zenithra_RenderObject(struct in_engine_data *engineDataStr, struct object_data **obj, mat4 *modelMatrices, int objNum, GLuint texID){
+void Zenithra_RenderObject(struct in_engine_data *engineDataStr, struct object_data **obj, int objNum, GLuint texID){
 	int i;
 	mat4 projection, view, mvp;
 	glm_perspective(glm_rad(engineDataStr->MOVE->FOV), (float) engineDataStr->window_x / (float) engineDataStr->window_y, 1.0f, 1000.0f, projection);
@@ -284,7 +284,6 @@ void Zenithra_RenderObject(struct in_engine_data *engineDataStr, struct object_d
 	glm_lookat(engineDataStr->MOVE->position, positionDirection, up, view);
 
 	glm_mat4_mul(projection, view, mvp);
-	glm_mat4_mul(mvp, modelMatrices[objNum], mvp);
 
     //GLint lightPosLoc = glGetUniformLocation(engineDataStr->GL->programID, "LightPosition_worldspace");
     //glUniform3f(lightPosLoc, 0.0f, 5.0f, 0.0f);
