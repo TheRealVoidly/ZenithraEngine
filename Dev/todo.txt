@@ -2,6 +2,8 @@
 TODO
 -------------------------------------------------------
 
+-- Fix long load times + segfault for large objects
+
 -- Fix camera free rotation causing mouse invert
 
 -- Get rid of main.c ?

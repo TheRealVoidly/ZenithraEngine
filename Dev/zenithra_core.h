@@ -114,21 +114,21 @@ bool Zenithra_HandleEventPoll(struct in_engine_data *engineDataStr);
 
 struct list_temp_vec3{
     struct list_temp_vec3 *next;
-    float data[3];
+    long double data[3];
 };
 
 struct list_temp_vec2{
     struct list_temp_vec2 *next;
-    float data[2];
+    long double data[2];
 };
 
 struct list_temp_mat3{
     struct list_temp_mat3 *next;
-    int data[3][3];
+    long long data[3][3];
 };
 
 struct object_data{
-    long objSize;
+    long long objSize;
     GLuint objNormalBuffer;
     GLuint objVertexBuffer;
     GLuint objUVBuffer;
@@ -137,7 +137,7 @@ struct object_data{
 
     GLfloat *vertex_buffer_data;
 
-    long triangles;
+    long long triangles;
 };
 
 GLuint Zenithra_LoadShaders(struct in_engine_data *engineDataStr);

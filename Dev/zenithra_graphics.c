@@ -45,8 +45,8 @@ GLuint Zenithra_LoadShaders(struct in_engine_data *engineDataStr){
 
 struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const char* fileName){
 	FILE *fp = NULL;
-	char buffer[255];
-	int res;
+	char buffer[1024];
+	long res;
 
 	struct object_data *obj = (void*)malloc(sizeof(struct object_data));
 	obj->triangles = 0;
@@ -76,28 +76,28 @@ struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const
 		}
 
 		if(strcmp(buffer, "v") == 0){
-			fscanf(fp, "%f %f %f", &node_vert->data[0], &node_vert->data[1], &node_vert->data[2]);
+			fscanf(fp, "%Lf %Lf %Lf", &node_vert->data[0], &node_vert->data[1], &node_vert->data[2]);
 			node_vert->next = Zenithra_CreateNode((void*)&node_vert, false, sizeof(struct list_temp_vec3));
 			node_vert = node_vert->next;
 		}
 
 		if(strcmp(buffer, "vn") == 0){
-			fscanf(fp, "%f %f %f", &node_norm->data[0], &node_norm->data[1], &node_norm->data[2]);
+			fscanf(fp, "%Lf %Lf %Lf", &node_norm->data[0], &node_norm->data[1], &node_norm->data[2]);
 			node_norm->next = Zenithra_CreateNode((void*)&node_norm, false, sizeof(struct list_temp_vec3));
 			node_norm = node_norm->next;
 		}
 
 		if(strcmp(buffer, "vt") == 0){
-			fscanf(fp, "%f %f", &node_text->data[0], &node_text->data[1]);
+			fscanf(fp, "%Lf %Lf", &node_text->data[0], &node_text->data[1]);
 			node_text->next = Zenithra_CreateNode((void*)&node_text, false, sizeof(struct list_temp_vec2));
 			node_text = node_text->next;
 		}
 
 		if(strcmp(buffer, "f") == 0){
 			obj->triangles++;
-			fscanf(fp, "%d/%d/%d", &node_face->data[0][0], &node_face->data[0][1], &node_face->data[0][2]);
-			fscanf(fp, "%d/%d/%d", &node_face->data[1][0], &node_face->data[1][1], &node_face->data[1][2]);
-			fscanf(fp, "%d/%d/%d", &node_face->data[2][0], &node_face->data[2][1], &node_face->data[2][2]);
+			fscanf(fp, "%lld/%lld/%lld", &node_face->data[0][0], &node_face->data[0][1], &node_face->data[0][2]);
+			fscanf(fp, "%lld/%lld/%lld", &node_face->data[1][0], &node_face->data[1][1], &node_face->data[1][2]);
+			fscanf(fp, "%lld/%lld/%lld", &node_face->data[2][0], &node_face->data[2][1], &node_face->data[2][2]);
 			node_face->next = Zenithra_CreateNode((void*)&node_face, false, sizeof(struct list_temp_mat3));
 			node_face = node_face->next;
 		}
@@ -109,7 +109,7 @@ struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const
 	uvs_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 2 + 24);
 	normals_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 3 + 48);
 
-	int i, j, a = 0, b = 0;
+	long long i, j, a = 0, b = 0;
 	node_face = head_face;
 	while(1){
 		for(i = 0; i < 3; i++){
@@ -222,19 +222,22 @@ GLuint Zenithra_CreateTexture(const char* fileName){
 	char fourCC[4];
 	memcpy(fourCC, &header[80], 4);
 
-	if (strncmp(fourCC, "DXT1", 4) == 0)
+	if(strncmp(fourCC, "DXT1", 4) == 0){
 		format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-	else if (strncmp(fourCC, "DXT3", 4) == 0)
+	}
+	else if(strncmp(fourCC, "DXT3", 4) == 0){
 		format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-	else if (strncmp(fourCC, "DXT5", 4) == 0)
+	}
+	else if(strncmp(fourCC, "DXT5", 4) == 0){
 		format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-	else {
+	}
+	else{
 		Zenithra_LogErr(__FILE__, __LINE__, "Unsupported DDS format");
 		Zenithra_Free((void*)&data);
 		return 0;
 	}
 
-	if (strncmp(fourCC, "DX10", 4) == 0) {
+	if(strncmp(fourCC, "DX10", 4) == 0){
 		Zenithra_LogErr(__FILE__, __LINE__, "DX10 DDS files not supported");
 		Zenithra_Free((void*)&data);
 		return 0;
@@ -250,7 +253,7 @@ GLuint Zenithra_CreateTexture(const char* fileName){
 		unsigned int h = height > 0 ? height : 1;
 		unsigned int size = ((w + 3) / 4) * ((h + 3) / 4) * blockSize;
 
-		if (offset + size > bufsize) {
+		if(offset + size > bufsize){
 			Zenithra_LogErr(__FILE__, __LINE__, "DDS mipmap data overflows buffer");
 			Zenithra_Free((void*)&data);
 			return 0;
@@ -259,7 +262,7 @@ GLuint Zenithra_CreateTexture(const char* fileName){
 		glCompressedTexImage2D(GL_TEXTURE_2D, level, format, w, h, 0, size, data + offset);
 		offset += size;
 
-		if (useMipmaps) {
+		if(useMipmaps){
 			width = width > 1 ? width / 2 : 1;
 			height = height > 1 ? height / 2 : 1;
 		}
