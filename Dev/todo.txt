@@ -2,6 +2,8 @@
 TODO
 -------------------------------------------------------
 
+-- Make a safe check for rendering not-loaded objects
+
 -- Fix long load times + segfault for large objects
 
 -- Fix camera free rotation causing mouse invert

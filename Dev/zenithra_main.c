@@ -135,7 +135,7 @@ void Zenithra_TestEditor(struct in_engine_data *engineDataStr){
     GLuint texBlue = Zenithra_CreateTexture("./EngineData/Colors/blue.DDS");
     //obj[0] = Zenithra_LoadOBJ(engineDataStr, "./Objects/plane.obj");
     //obj[1] = Zenithra_LoadOBJ(engineDataStr, "./Objects/thing.obj");
-    //GLuint texGiga = Zenithra_CreateTexture("./Textures/mugshot1.DDS");
+    //GLuint texGiga = Zenithra_CreateTexture("./GameData/Textures/mugshot1.DDS");
     //GLuint texGravel = Zenithra_CreateTexture("./Textures/gravel.DDS");
 
     do{

@@ -46,13 +46,12 @@ GLuint Zenithra_LoadShaders(struct in_engine_data *engineDataStr){
 struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const char* fileName){
 	FILE *fp = NULL;
 	char buffer[255];
-	long res;
+	long long res, a = 0, b = 0, i, j;
 
 	struct object_data *obj = (void*)malloc(sizeof(struct object_data));
 	obj->triangles = 0;
 
-	GLfloat *uvs_buffer_data, *normals_buffer_data;
-	int **face_buffer_data;
+	GLfloat *uvs_buffer_data, *normals_buffer_data, *temp_vertex_buffer_data, *temp_normals_buffer_data, *temp_uvs_buffer_data;
 
 	/*struct list_temp_vec3 *head_vert = Zenithra_CreateNode((void*)&head_vert, true, sizeof(struct list_temp_vec3));
 	struct list_temp_vec3 *node_vert = head_vert;
@@ -73,7 +72,8 @@ struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const
 		return NULL;
 	}
 
-	while(0){
+	bool vCheck = false, vnCheck = false, vtCheck = false;
+	while(1){
 		res = fscanf(fp, "%s", buffer);
 
 		if(res == EOF){
@@ -84,19 +84,12 @@ struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const
 			obj->triangles++;
 		}
 	}
-	fclose(fp);
 
-	face_buffer_data = (int**)malloc(sizeof(long long**) * obj->triangles * 6);
+	int *face_buffer_data;
+	face_buffer_data = (int*)malloc(sizeof(int*) * obj->triangles * 3);
 
-	fp = fopen(fileName, "r");
-	if(!fp){
-		Zenithra_LogErr(__FILE__, __LINE__, "OBJ file could not be opened");
-		Zenithra_LogMsg(fileName);
-		return NULL;
-	}
-
-	long long a = 0, b = 0, i = 0;
-	while(0){
+	fseek(fp, 0, SEEK_SET);
+	while(1){
 		res = fscanf(fp, "%s", buffer);
 
 		if(res == EOF){
@@ -104,51 +97,53 @@ struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const
 		}
 
 		if(strcmp(buffer, "f") == 0){
-			fscanf(fp, "%d/%d/%d", &face_buffer_data[a+0][a+0], &face_buffer_data[a+0][a+1], &face_buffer_data[a+0][a+2]);
-			fscanf(fp, "%d/%d/%d", &face_buffer_data[a+1][a+0], &face_buffer_data[a+1][a+1], &face_buffer_data[a+1][a+2]);
-			fscanf(fp, "%d/%d/%d", &face_buffer_data[a+2][a+0], &face_buffer_data[a+2][a+1], &face_buffer_data[a+2][a+2]);
+			fscanf(fp, "%d/%d/%d", &face_buffer_data[a], &face_buffer_data[a+1], &face_buffer_data[a+2]);
+			fscanf(fp, "%d/%d/%d", &face_buffer_data[a+3], &face_buffer_data[a+4], &face_buffer_data[a+5]);
+			fscanf(fp, "%d/%d/%d", &face_buffer_data[a+6], &face_buffer_data[a+7], &face_buffer_data[a+8]);
+			a += 9;
 		}
-
-		a += 3;
-	}
-	fclose(fp);
-
-	fp = fopen(fileName, "r");
-	if(!fp){
-		Zenithra_LogErr(__FILE__, __LINE__, "OBJ file could not be opened");
-		Zenithra_LogMsg(fileName);
-		return NULL;
 	}
 
 	obj->vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 3 + 48);
 	uvs_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 2 + 24);
 	normals_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 3 + 48);
+	temp_vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 3 + 48);
+	temp_uvs_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 2 + 24);
+	temp_normals_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 3 + 48);
 
-	a = 0;
-	while(0){
-		res = fscanf(fp, "%s", buffer);
+	obj->objSize = obj->triangles * 3;
 
-		if(res == EOF){
-			break;
-		}
-
-		if(strcmp(buffer, "v") == 0){
-			fscanf(fp, "%f %f %f", &obj->vertex_buffer_data[face_buffer_data[a][0]+0], &obj->vertex_buffer_data[face_buffer_data[a][0]+1], &obj->vertex_buffer_data[face_buffer_data[a][0]+2]);
-		}
-
-		if(strcmp(buffer, "vn") == 0){
-			fscanf(fp, "%f %f %f", &normals_buffer_data[face_buffer_data[a][1]+0], &normals_buffer_data[face_buffer_data[a][1]+1], &normals_buffer_data[face_buffer_data[a][1]+2]);
-		}
-
-		if(strcmp(buffer, "vt") == 0){
-			fscanf(fp, "%f %f", &uvs_buffer_data[face_buffer_data[a][2]+0], &uvs_buffer_data[face_buffer_data[a][2]+1]);
-		}
-
-		i++;
-		a += 3;
-		b += 2;
+	i = 0;
+	fseek(fp, 0, SEEK_SET);
+	fscanf(fp, "%s", buffer);
+	while(strcmp(buffer, "v") != 0){
+		fscanf(fp, "%s", buffer);
+	}
+	while(strcmp(buffer, "v") == 0){
+		fscanf(fp, "%f %f %f", &temp_vertex_buffer_data[i], &temp_vertex_buffer_data[i+1], &temp_vertex_buffer_data[i+2]);
+		fscanf(fp, "%s", buffer);
+		i += 3;
+	}
+	i = 0;
+	while(strcmp(buffer, "vn") == 0){
+		fscanf(fp, "%f %f %f", &temp_normals_buffer_data[i], &temp_normals_buffer_data[i+1], &temp_normals_buffer_data[i+2]);
+		fscanf(fp, "%s", buffer);
+		i += 3;
+	}
+	i = 0;
+	while(strcmp(buffer, "vt") == 0){
+		fscanf(fp, "%f %f", &uvs_buffer_data[i], &uvs_buffer_data[i+1]);
+		fscanf(fp, "%s", buffer);
+		i += 2;
 	}
 	fclose(fp);
+
+	for(i = 0; i < obj->objSize; i=i+3){
+		obj->vertex_buffer_data[a] = temp_vertex_buffer_data[face_buffer_data[i]];
+		normals_buffer_data[a] = temp_normals_buffer_data[face_buffer_data[i+1]];
+		uvs_buffer_data[a] = temp_uvs_buffer_data[face_buffer_data[i+2]];
+		a++;
+	}
 
 	/*GLfloat *uvs_buffer_data, *normals_buffer_data;
 	obj->vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 3 + 48);
@@ -189,8 +184,6 @@ struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const
 		node_face = node_face->next;
 	}*/
 
-	obj->objSize = obj->triangles * 3;
-
 	glGenBuffers(1, &obj->objVertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, obj->objVertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(obj->vertex_buffer_data) * obj->triangles * 3 * 3 + 48, &obj->vertex_buffer_data[0], GL_STATIC_DRAW);
@@ -206,6 +199,10 @@ struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const
 	//Zenithra_Free((void*)&vertex_buffer_data);
 	Zenithra_Free((void*)&uvs_buffer_data);
 	Zenithra_Free((void*)&normals_buffer_data);
+	Zenithra_Free((void*)&face_buffer_data);
+	Zenithra_Free((void*)&temp_vertex_buffer_data);
+	Zenithra_Free((void*)&temp_normals_buffer_data);
+	Zenithra_Free((void*)&temp_uvs_buffer_data);
 
 	//Zenithra_FreeList((void*)&head_vert);
 	//Zenithra_FreeList((void*)&head_norm);
