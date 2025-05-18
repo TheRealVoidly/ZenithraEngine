@@ -123,15 +123,17 @@ struct object_data{
     GLfloat *vertex_buffer_data;
 
     long long triangles;
+
+    bool engineObj;
 };
 
 GLuint Zenithra_LoadShaders(struct in_engine_data *engineDataStr);
 GLuint Zenithra_CreateTexture(const char* fileName);
-struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const char* fileName);
+struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, bool engineObj, const char* fileName);
 void Zenithra_RenderObject(struct in_engine_data *engineDataStr, struct object_data **obj, int objNum, GLuint texID);
 
 //-----------------------------------------------
 //Editor
 //-----------------------------------------------
 
-int* Zenithra_ObjectRayIntersectsDetection(float origin[3], struct object_data *obj, struct in_engine_data *engineDataStr);
+int* Zenithra_ObjectRayIntersectsDetection(float origin[3], struct object_data **obj, struct in_engine_data *engineDataStr);

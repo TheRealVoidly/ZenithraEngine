@@ -4,8 +4,6 @@ TODO
 
 -- Make objects scaleable
 
--- Make a safe check for rendering not-loaded objects
-
 -- Fix camera free rotation causing mouse invert
 
 -- Write comments

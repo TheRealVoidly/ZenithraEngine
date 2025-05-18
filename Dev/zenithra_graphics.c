@@ -43,7 +43,7 @@ GLuint Zenithra_LoadShaders(struct in_engine_data *engineDataStr){
 	return programID;
 }
 
-struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const char* fileName){
+struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, bool engineObj, const char* fileName){
 	FILE *fp = NULL;
 	char buffer[255];
 	long long res, i = 0;
@@ -156,6 +156,7 @@ struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const
 	Zenithra_Free((void**)&temp_normals_buffer_data);
 	Zenithra_Free((void**)&temp_uvs_buffer_data);
 
+	obj->engineObj = engineObj;
 	engineDataStr->objNum++;
 	return obj;
 }
@@ -269,6 +270,11 @@ GLuint Zenithra_CreateTexture(const char* fileName){
 void Zenithra_RenderObject(struct in_engine_data *engineDataStr, struct object_data **obj, int objNum, GLuint texID){
 	int i;
 	mat4 projection, view, mvp;
+
+	if(obj[objNum] == NULL){
+		return;
+	}
+
 	glm_perspective(glm_rad(engineDataStr->MOVE->FOV), (float) engineDataStr->window_x / (float) engineDataStr->window_y, 1.0f, 1000.0f, projection);
 
 	vec3 positionDirection;
