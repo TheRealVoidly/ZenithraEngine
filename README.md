@@ -4,8 +4,7 @@
 A lightweight game engine made using C and SDL2, OpenGL
 
 # Build instructions
-Using Makefile
-make
+Using Makefile - make (for Linux), make windows (for Windows), make clear (clears all compiled files)
 
 # License
 ZenithraEngine is licensed under the ZenithraEngine License (ZEL) v1.0.

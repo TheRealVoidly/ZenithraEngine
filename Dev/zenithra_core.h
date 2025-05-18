@@ -112,21 +112,6 @@ bool Zenithra_HandleEventPoll(struct in_engine_data *engineDataStr);
 //Graphics
 //-----------------------------------------------
 
-struct list_temp_vec3{
-    struct list_temp_vec3 *next;
-    long double data[3];
-};
-
-struct list_temp_vec2{
-    struct list_temp_vec2 *next;
-    long double data[2];
-};
-
-struct list_temp_mat3{
-    struct list_temp_mat3 *next;
-    long long data[3][3];
-};
-
 struct object_data{
     long long objSize;
     GLuint objNormalBuffer;
@@ -144,3 +129,9 @@ GLuint Zenithra_LoadShaders(struct in_engine_data *engineDataStr);
 GLuint Zenithra_CreateTexture(const char* fileName);
 struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const char* fileName);
 void Zenithra_RenderObject(struct in_engine_data *engineDataStr, struct object_data **obj, int objNum, GLuint texID);
+
+//-----------------------------------------------
+//Editor
+//-----------------------------------------------
+
+int* Zenithra_ObjectRayIntersectsDetection(float origin[3], struct object_data *obj, struct in_engine_data *engineDataStr);
