@@ -46,24 +46,14 @@ GLuint Zenithra_LoadShaders(struct in_engine_data *engineDataStr){
 struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const char* fileName){
 	FILE *fp = NULL;
 	char buffer[255];
-	long long res, a = 0, b = 0, i, j;
+	long long res, i = 0;
+	int vi, ti, ni, uv_i;
+	int a = 0, b = 0, c = 0;
 
 	struct object_data *obj = (void*)malloc(sizeof(struct object_data));
 	obj->triangles = 0;
 
 	GLfloat *uvs_buffer_data, *normals_buffer_data, *temp_vertex_buffer_data, *temp_normals_buffer_data, *temp_uvs_buffer_data;
-
-	/*struct list_temp_vec3 *head_vert = Zenithra_CreateNode((void*)&head_vert, true, sizeof(struct list_temp_vec3));
-	struct list_temp_vec3 *node_vert = head_vert;
-
-	struct list_temp_vec3 *head_norm = Zenithra_CreateNode((void*)&head_norm, true, sizeof(struct list_temp_vec3));
-	struct list_temp_vec3 *node_norm = head_norm;
-
-	struct list_temp_vec2 *head_text = Zenithra_CreateNode((void*)&head_text, true, sizeof(struct list_temp_vec2));
-	struct list_temp_vec2 *node_text = head_text;
-
-	struct list_temp_mat3 *head_face = Zenithra_CreateNode((void*)&head_face, true, sizeof(struct list_temp_mat3));
-	struct list_temp_mat3 *node_face = head_face;*/
 
 	fp = fopen(fileName, "r");
 	if(!fp){
@@ -72,7 +62,6 @@ struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const
 		return NULL;
 	}
 
-	bool vCheck = false, vnCheck = false, vtCheck = false;
 	while(1){
 		res = fscanf(fp, "%s", buffer);
 
@@ -85,8 +74,10 @@ struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const
 		}
 	}
 
+	obj->objSize = obj->triangles * 3;
+
 	int *face_buffer_data;
-	face_buffer_data = (int*)malloc(sizeof(int*) * obj->triangles * 3);
+	face_buffer_data = (int*)malloc(sizeof(int) * (obj->objSize * 3));
 
 	fseek(fp, 0, SEEK_SET);
 	while(1){
@@ -97,117 +88,73 @@ struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, const
 		}
 
 		if(strcmp(buffer, "f") == 0){
-			fscanf(fp, "%d/%d/%d", &face_buffer_data[a], &face_buffer_data[a+1], &face_buffer_data[a+2]);
-			fscanf(fp, "%d/%d/%d", &face_buffer_data[a+3], &face_buffer_data[a+4], &face_buffer_data[a+5]);
-			fscanf(fp, "%d/%d/%d", &face_buffer_data[a+6], &face_buffer_data[a+7], &face_buffer_data[a+8]);
-			a += 9;
+			fscanf(fp, "%d/%d/%d %d/%d/%d %d/%d/%d", &face_buffer_data[i], &face_buffer_data[i+1], &face_buffer_data[i+2], &face_buffer_data[i+3], &face_buffer_data[i+4], &face_buffer_data[i+5], &face_buffer_data[i+6], &face_buffer_data[i+7], &face_buffer_data[i+8]);
+			i += 9;
 		}
 	}
 
-	obj->vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 3 + 48);
-	uvs_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 2 + 24);
-	normals_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 3 + 48);
-	temp_vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 3 + 48);
-	temp_uvs_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 2 + 24);
-	temp_normals_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 3 + 48);
+	obj->vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->objSize * 3));
+	uvs_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->objSize * 2));
+	normals_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->objSize * 3));
+	temp_vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->objSize * 3));
+	temp_uvs_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->objSize * 2));
+	temp_normals_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->objSize * 3));
 
-	obj->objSize = obj->triangles * 3;
-
-	i = 0;
 	fseek(fp, 0, SEEK_SET);
-	fscanf(fp, "%s", buffer);
-	while(strcmp(buffer, "v") != 0){
-		fscanf(fp, "%s", buffer);
-	}
-	while(strcmp(buffer, "v") == 0){
-		fscanf(fp, "%f %f %f", &temp_vertex_buffer_data[i], &temp_vertex_buffer_data[i+1], &temp_vertex_buffer_data[i+2]);
-		fscanf(fp, "%s", buffer);
-		i += 3;
-	}
-	i = 0;
-	while(strcmp(buffer, "vn") == 0){
-		fscanf(fp, "%f %f %f", &temp_normals_buffer_data[i], &temp_normals_buffer_data[i+1], &temp_normals_buffer_data[i+2]);
-		fscanf(fp, "%s", buffer);
-		i += 3;
-	}
-	i = 0;
-	while(strcmp(buffer, "vt") == 0){
-		fscanf(fp, "%f %f", &uvs_buffer_data[i], &uvs_buffer_data[i+1]);
-		fscanf(fp, "%s", buffer);
-		i += 2;
+	res = fscanf(fp, "%s", buffer);
+	while(res != EOF){
+		res = fscanf(fp, "%s", buffer);
+		if(strcmp(buffer, "v") == 0){
+			fscanf(fp, "%f %f %f", &temp_vertex_buffer_data[a], &temp_vertex_buffer_data[a+1], &temp_vertex_buffer_data[a+2]);
+			a += 3;
+		}
+		if(strcmp(buffer, "vn") == 0){
+			fscanf(fp, "%f %f %f", &temp_normals_buffer_data[b], &temp_normals_buffer_data[b+1], &temp_normals_buffer_data[b+2]);
+			b += 3;
+		}
+		if(strcmp(buffer, "vt") == 0){
+			fscanf(fp, "%f %f", &temp_uvs_buffer_data[c], &temp_uvs_buffer_data[c+1]);
+			c += 2;
+		}
 	}
 	fclose(fp);
 
-	for(i = 0; i < obj->objSize; i=i+3){
-		obj->vertex_buffer_data[a] = temp_vertex_buffer_data[face_buffer_data[i]];
-		normals_buffer_data[a] = temp_normals_buffer_data[face_buffer_data[i+1]];
-		uvs_buffer_data[a] = temp_uvs_buffer_data[face_buffer_data[i+2]];
-		a++;
+	for (i = 0; i < obj->objSize * 3; i += 3) {
+		vi = face_buffer_data[i] - 1;
+		ti = face_buffer_data[i+1] - 1;
+		ni = face_buffer_data[i+2] - 1;
+
+		obj->vertex_buffer_data[i] = temp_vertex_buffer_data[vi*3];
+		obj->vertex_buffer_data[i+1] = temp_vertex_buffer_data[vi*3+1];
+		obj->vertex_buffer_data[i+2] = temp_vertex_buffer_data[vi*3+2];
+
+		normals_buffer_data[i] = temp_normals_buffer_data[ni*3];
+		normals_buffer_data[i+1] = temp_normals_buffer_data[ni*3+1];
+		normals_buffer_data[i+2] = temp_normals_buffer_data[ni*3+2];
+
+		uv_i = (i / 3) * 2;
+		uvs_buffer_data[uv_i] = temp_uvs_buffer_data[ti*2];
+		uvs_buffer_data[uv_i+1] = temp_uvs_buffer_data[ti*2+1];
 	}
-
-	/*GLfloat *uvs_buffer_data, *normals_buffer_data;
-	obj->vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 3 + 48);
-	uvs_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 2 + 24);
-	normals_buffer_data = (GLfloat*)malloc(sizeof(GLfloat*) * obj->triangles * 3 * 3 + 48);
-
-	long long i, j, a = 0, b = 0;
-	node_face = head_face;
-	while(1){
-		for(i = 0; i < 3; i++){
-			node_vert = head_vert;
-			node_norm = head_norm;
-			node_text = head_text;
-			for(j = 1; j < node_face->data[i][0]; j++){
-				node_vert = node_vert->next;
-			}
-			for(j = 1; j < node_face->data[i][1]; j++){
-				node_text = node_text->next;
-			}
-			for(j = 1; j < node_face->data[i][2]; j++){
-				node_norm = node_norm->next;
-			}
-			uvs_buffer_data[b] = node_text->data[0];
-			uvs_buffer_data[b+1] = node_text->data[1];
-			normals_buffer_data[a] = node_norm->data[0];
-			normals_buffer_data[a+1] = node_norm->data[1];
-			normals_buffer_data[a+2] = node_norm->data[2];
-			obj->vertex_buffer_data[a] = node_vert->data[0];
-			obj->vertex_buffer_data[a+1] = node_vert->data[1];
-			obj->vertex_buffer_data[a+2] = node_vert->data[2];
-			a += 3;
-			b += 2;
-		}
-
-		if(!node_face->next->next){
-			break;
-		}
-		node_face = node_face->next;
-	}*/
 
 	glGenBuffers(1, &obj->objVertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, obj->objVertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(obj->vertex_buffer_data) * obj->triangles * 3 * 3 + 48, &obj->vertex_buffer_data[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj->objSize * 3, &obj->vertex_buffer_data[0], GL_STATIC_DRAW);
 
 	glGenBuffers(1, &obj->objUVBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, obj->objUVBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(uvs_buffer_data) * obj->triangles * 3 * 2 + 24, &uvs_buffer_data[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj->objSize * 2, &uvs_buffer_data[0], GL_STATIC_DRAW);
 
 	glGenBuffers(1, &obj->objNormalBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, obj->objNormalBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(normals_buffer_data) * obj->triangles * 3 * 3 + 48, &normals_buffer_data[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj->objSize * 3, &normals_buffer_data[0], GL_STATIC_DRAW);
 
-	//Zenithra_Free((void*)&vertex_buffer_data);
-	Zenithra_Free((void*)&uvs_buffer_data);
-	Zenithra_Free((void*)&normals_buffer_data);
-	Zenithra_Free((void*)&face_buffer_data);
-	Zenithra_Free((void*)&temp_vertex_buffer_data);
-	Zenithra_Free((void*)&temp_normals_buffer_data);
-	Zenithra_Free((void*)&temp_uvs_buffer_data);
-
-	//Zenithra_FreeList((void*)&head_vert);
-	//Zenithra_FreeList((void*)&head_norm);
-	//Zenithra_FreeList((void*)&head_text);
-	//Zenithra_FreeList((void*)&head_face);
+	Zenithra_Free((void**)&uvs_buffer_data);
+	Zenithra_Free((void**)&normals_buffer_data);
+	Zenithra_Free((void**)&face_buffer_data);
+	Zenithra_Free((void**)&temp_vertex_buffer_data);
+	Zenithra_Free((void**)&temp_normals_buffer_data);
+	Zenithra_Free((void**)&temp_uvs_buffer_data);
 
 	engineDataStr->objNum++;
 	return obj;

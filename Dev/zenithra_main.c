@@ -129,7 +129,7 @@ void Zenithra_TestEditor(struct in_engine_data *engineDataStr){
     obj[0] = Zenithra_LoadOBJ(engineDataStr, "./EngineData/VectorArrows/vectorarrowx.obj");
     obj[1] = Zenithra_LoadOBJ(engineDataStr, "./EngineData/VectorArrows/vectorarrowy.obj");
     obj[2] = Zenithra_LoadOBJ(engineDataStr, "./EngineData/VectorArrows/vectorarrowz.obj");
-    obj[3] = Zenithra_LoadOBJ(engineDataStr, "./GameData/Objects/thing.obj");
+    obj[3] = Zenithra_LoadOBJ(engineDataStr, "./GameData/Objects/tifa.obj");
     GLuint texRed = Zenithra_CreateTexture("./EngineData/Colors/red.DDS");
     GLuint texGreen = Zenithra_CreateTexture("./EngineData/Colors/green.DDS");
     GLuint texBlue = Zenithra_CreateTexture("./EngineData/Colors/blue.DDS");
