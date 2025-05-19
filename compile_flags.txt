@@ -1,4 +1,0 @@
---target=x86_64-pc-linux-gnu
---include-directory=/usr/local/include
---include-directory=/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed
---include-directory=/usr/include

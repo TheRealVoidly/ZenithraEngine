@@ -1,0 +1,17 @@
+-------------------------------------------------------
+TODO
+-------------------------------------------------------
+
+-- Make objects scaleable
+
+-- Fix camera free rotation causing mouse invert
+
+-- Write comments
+
+-- Create an editor
+    -- Add real time object loading
+    -- Detect hover over object and load in direction arrows
+    	-- Make the arrows interactable with LMB and move the object
+        -- Attach the arrows to the edges of the object temporarily, deattach and hide when not hovering over the object
+
+-- Create normal movement with collisions and gravity, and fly mode.. Maybe game's task ?

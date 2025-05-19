@@ -1,9 +1,0 @@
-17:12:07: Zenithra engine started
-../main(Zenithra_SignalCatch+0x2b) [0x5b6b77bf3d62]
-/usr/lib/libc.so.6(+0x3d1d0) [0x7276441951d0]
-../main(Zenithra_MainGameLoop+0x340) [0x5b6b77bf1888]
-../main(main+0x2e) [0x5b6b77bf1535]
-/usr/lib/libc.so.6(+0x25e08) [0x72764417de08]
-/usr/lib/libc.so.6(__libc_start_main+0x8c) [0x72764417decc]
-../main(_start+0x25) [0x5b6b77bf13f5]
-SIGSEGV
