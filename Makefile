@@ -32,7 +32,7 @@ windows: dev/src/zenithra_core_windows.o dev/src/zenithra_main_windows.o dev/src
 dev/src/zenithra_editor_windows.o: dev/src/zenithra_editor.c dev/src/zenithra_core.h
 	x86_64-w64-mingw32-gcc -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32 -c dev/src/zenithra_editor.c -o dev/src/zenithra_editor_windows.o
 
-dev/src/zenithra_core_windows.o: dev/src/zenithra_core.c dev/src/enithra_debug.h
+dev/src/zenithra_core_windows.o: dev/src/zenithra_core.c dev/src/zenithra_debug.h
 	x86_64-w64-mingw32-gcc -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32 -c dev/src/zenithra_core.c -o dev/src/zenithra_core_windows.o
 
 dev/src/zenithra_main_windows.o: dev/src/zenithra_main.c dev/src/zenithra_debug.h dev/src/zenithra_core.h
@@ -44,7 +44,7 @@ dev/src/zenithra_debug_windows.o: dev/src/zenithra_debug.c dev/src/zenithra_debu
 dev/src/zenithra_movement_windows.o: dev/src/zenithra_movement.c dev/src/zenithra_core.h
 	x86_64-w64-mingw32-gcc -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32 -c dev/src/zenithra_movement.c -o dev/src/zenithra_movement_windows.o
 
-dev/src/zenithra_events_windows.o: dev/src/zenithra_events.c dev/src/zzenithra_core.h
+dev/src/zenithra_events_windows.o: dev/src/zenithra_events.c dev/src/zenithra_core.h
 	x86_64-w64-mingw32-gcc -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32 -c dev/src/zenithra_events.c -o dev/src/zenithra_events_windows.o
 
 dev/src/zenithra_graphics_windows.o: dev/src/zenithra_graphics.c dev/src/zenithra_core.h dev/src/vertex_shader.h dev/src/fragment_shader.h
