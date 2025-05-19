@@ -2,45 +2,45 @@
 #include<time.h>
 #include<stdio.h>
 
-FILE *logFp;
+FILE *g_log_fp;
 
-void Zenithra_LogMsg(const char* message){
-    Zenithra_LogTime();
-    fprintf(logFp, "%s\n", message);
+void zenithra_log_msg(const char* message){
+    zenithra_log_time();
+    fprintf(g_log_fp, "%s\n", message);
 }
 
-void Zenithra_LogMsgSafe(const char* message){
+void zenithra_log_msg_safe(const char* message){
     int fd = open("./zenithra_log.txt", O_APPEND | O_WRONLY | O_CREAT, 0644);
     write(fd, message, strlen(message));
     close(fd);
 }
 
-void Zenithra_LogErr(const char* fileName, int line, const char* errorMessage){
-    Zenithra_LogTime();
-    fprintf(logFp, "%s - in file %s on line %d\n", errorMessage, fileName, line);
+void zenithra_log_err(const char* file_name, int line, const char* error_message){
+    zenithra_log_time();
+    fprintf(g_log_fp, "%s - in file %s on line %d\n", error_message, file_name, line);
     SDL_ClearError();
 }
 
-void Zenithra_LogTime(){
+void zenithra_log_time(){
     time_t rawtime = time(NULL);
-    struct tm *timeinfo;
-    timeinfo = localtime(&rawtime);
-    fprintf(logFp, "%02d:%02d:%02d: ", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+    struct tm *time_info;
+    time_info = localtime(&rawtime);
+    fprintf(g_log_fp, "%02d:%02d:%02d: ", time_info->tm_hour, time_info->tm_min, time_info->tm_sec);
 }
 
-void Zenithra_LogInit(){
-    logFp = fopen("./zenithra_log.txt", "w");
-    Zenithra_LogMsg("Zenithra engine started");
-    fclose(logFp);
-    logFp = fopen("./zenithra_log.txt", "a");
+void zenithra_log_init(){
+    g_log_fp = fopen("./zenithra_log.txt", "w");
+    zenithra_log_msg("Zenithra engine started");
+    fclose(g_log_fp);
+    g_log_fp = fopen("./zenithra_log.txt", "a");
 }
 
-void Zenithra_LogClose(bool succesfull){
-    if(succesfull == true){
-        Zenithra_LogMsg("Zenithra exited succesfully");
-        fclose(logFp);
+void zenithra_log_close(bool successful){
+    if(successful == true){
+        zenithra_log_msg("Zenithra exited succesfully");
+        fclose(g_log_fp);
     }else{
-        Zenithra_LogMsg("Zenithra exited unexpectedly");
-        fclose(logFp);
+        zenithra_log_msg("Zenithra exited unexpectedly");
+        fclose(g_log_fp);
     }
 }

@@ -1,6 +1,6 @@
 #include<GL/glew.h>
 
-const GLchar* fragmentShaderSource[] = {
+const GLchar* fragment_shader_source[] = {
     "#version 330 core\n\
     \
     in vec2 UV;\

@@ -1,33 +1,33 @@
 #include"zenithra_core.h"
 
-bool Zenithra_HandleEventPoll(struct in_engine_data *engineDataStr){
+bool zenithra_handle_event_poll(struct InEngineData *engine_data_str){
 	SDL_Event event;
-	bool programShouldQuit = false;
-	const Uint8* keyState = SDL_GetKeyboardState(NULL);
+	bool program_should_quit = false;
+	const Uint8* key_state = SDL_GetKeyboardState(NULL);
 	while(SDL_PollEvent(&event) != 0){
 		if(event.type == SDL_QUIT){
-			programShouldQuit = true;
+			program_should_quit = true;
 		}
-		if(keyState[SDL_SCANCODE_ESCAPE] && !engineDataStr->SDL->focusLost && !engineDataStr->KEYS->escape){
+		if(key_state[SDL_SCANCODE_ESCAPE] && !engine_data_str->SDL->focus_lost && !engine_data_str->KEYS->escape){
 			SDL_ShowCursor(SDL_ENABLE);
 			SDL_SetRelativeMouseMode(SDL_FALSE);
-			SDL_SetWindowGrab(engineDataStr->SDL->window, SDL_FALSE);
-			engineDataStr->SDL->focusLost = true;
-			engineDataStr->KEYS->escape = true;
+			SDL_SetWindowGrab(engine_data_str->SDL->window, SDL_FALSE);
+			engine_data_str->SDL->focus_lost = true;
+			engine_data_str->KEYS->escape = true;
 		}
-		if(keyState[SDL_SCANCODE_ESCAPE] && engineDataStr->SDL->focusLost && !engineDataStr->KEYS->escape){
+		if(key_state[SDL_SCANCODE_ESCAPE] && engine_data_str->SDL->focus_lost && !engine_data_str->KEYS->escape){
 			SDL_ShowCursor(SDL_DISABLE);
 			SDL_SetRelativeMouseMode(SDL_TRUE);
-			SDL_SetWindowGrab(engineDataStr->SDL->window, SDL_TRUE);
-			engineDataStr->SDL->focusLost = false;
-			engineDataStr->KEYS->escape = true;
+			SDL_SetWindowGrab(engine_data_str->SDL->window, SDL_TRUE);
+			engine_data_str->SDL->focus_lost = false;
+			engine_data_str->KEYS->escape = true;
 		}
 
-		if(engineDataStr->KEYS->escape){
-			if(!keyState[SDL_SCANCODE_ESCAPE]){
-				engineDataStr->KEYS->escape = false;
+		if(engine_data_str->KEYS->escape){
+			if(!key_state[SDL_SCANCODE_ESCAPE]){
+				engine_data_str->KEYS->escape = false;
 			}
 		}
 	}
-	return programShouldQuit;
+	return program_should_quit;
 }

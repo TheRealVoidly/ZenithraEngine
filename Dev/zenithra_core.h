@@ -36,104 +36,99 @@
 //Core
 //-----------------------------------------------
 
-#define ZENITHRA_KEYCALLBACK 1
-#define ZENITHRA_CONSOLECALLBACK 2
-
-typedef struct sdl_engine_data{
+typedef struct SDLEngineData{
     SDL_Window *window;
     SDL_Renderer *renderer;
-    bool focusLost;
+    bool focus_lost;
 }SDL;
 
-typedef struct gl_engine_data{
-    GLuint programID;
-    GLuint matrixID;
-    GLuint vertexArrayID;
+typedef struct GLEngineData{
+    GLuint program_id;
+    GLuint matrix_id;
+    GLuint vertex_array_id;
 }GL;
 
-typedef struct movement_engine_data{
+typedef struct MovementEngineData{
     vec3 position;
-    vec3 directionLook;
-    vec3 directionStrafe;
-    vec3 directionVertical;
-    float horizontalAngle;
-    float verticalAngle;
-    float FOV;
+    vec3 direction_look;
+    vec3 direction_strafe;
+    vec3 direction_vertical;
+    float horizontal_angle;
+    float vertical_angle;
+    float fov;
     float speed;
-    float mouseSpeed;
+    float mouse_speed;
     float gravity;
-    int xPos, yPos;
+    int x_pos, y_pos;
 }MOVE;
 
-typedef struct keys_engine_data{
+typedef struct KeysEngineData{
     bool escape;
-    bool rShift;
+    bool r_shift;
 }KEYS;
 
-struct in_engine_data{
+struct InEngineData{
     MOVE *MOVE;
     SDL *SDL;
     GL *GL;
     KEYS *KEYS;
 
-    float deltaTime;
+    float delta_time;
     int window_x;
     int window_y;
 
-    int objNum;
+    int obj_num;
 };
 
-void Zenithra_SignalCatch(int n);
-void Zenithra_Free(void **pp);
-void Zenithra_FreeList(void **head);
-void* Zenithra_CreateNode(void **node, bool isHead, int structTypeSize);
-struct in_engine_data* Zenithra_Init(int x, int y);
-void Zenithra_Destroy(struct in_engine_data *engineDataStr);
-void Zenithra_CriticalErrorOccured(struct in_engine_data *engineDataStr, char* fileName, int line, const char* error);
-bool Zenithra_InitializeOpenGL(struct in_engine_data *engineDataStr);
-bool Zenithra_InitializeSDL(struct in_engine_data *engineDataStr);
-void Zenithra_InitKeys(struct in_engine_data *engineDataStr);
+void zenithra_signal_catch(int n);
+void zenithra_free(void **pp);
+void zenithra_free_list(void **head);
+void* zenithra_create_node(void **node, bool is_head, int struct_type_size);
+struct InEngineData* zenithra_init(int x, int y);
+void zenithra_destroy(struct InEngineData *engine_data_str);
+void zenithra_critical_error_occured(struct InEngineData *engine_data_str, char* file_name, int line, const char* error);
+bool zenithra_initialize_opengl(struct InEngineData *engine_data_str);
+bool zenithra_initialize_sdl(struct InEngineData *engine_data_str);
+void zenithra_init_keys(struct InEngineData *engine_data_str);
 
 //-----------------------------------------------
 //Movement
 //-----------------------------------------------
 
-void Zenithra_InitMovementVals(struct in_engine_data *engineDataStr);
-void Zenithra_CalcMouseMovement(struct in_engine_data *engineDataStr);
-void Zenithra_UpdatePosition(struct in_engine_data *engineDataStr);
+void zenithra_init_movement_vals(struct InEngineData *engine_data_str);
+void zenithra_calc_mouse_movement(struct InEngineData *engine_data_str);
+void zenithra_update_position(struct InEngineData *engine_data_str);
 
 //-----------------------------------------------
 //Events
 //-----------------------------------------------
 
-bool Zenithra_HandleEventPoll(struct in_engine_data *engineDataStr);
+bool zenithra_handle_event_poll(struct InEngineData *engine_data_str);
 
 //-----------------------------------------------
 //Graphics
 //-----------------------------------------------
 
-struct object_data{
-    long long objSize;
-    GLuint objNormalBuffer;
-    GLuint objVertexBuffer;
-    GLuint objUVBuffer;
+struct ObjectData{
+    long long obj_size;
+    GLuint obj_normal_buffer;
+    GLuint obj_vertex_buffer;
+    GLuint obj_uv_buffer;
 
-    vec3 translationVector;
+    vec3 translation_vector;
 
     GLfloat *vertex_buffer_data;
 
-    long long triangles;
-
-    bool engineObj;
+    bool engine_obj;
 };
 
-GLuint Zenithra_LoadShaders(struct in_engine_data *engineDataStr);
-GLuint Zenithra_CreateTexture(const char* fileName);
-struct object_data* Zenithra_LoadOBJ(struct in_engine_data *engineDataStr, bool engineObj, const char* fileName);
-void Zenithra_RenderObject(struct in_engine_data *engineDataStr, struct object_data **obj, int objNum, GLuint texID);
+GLuint zenithra_load_shaders(struct InEngineData *engine_data_str);
+GLuint zenithra_create_texture(const char* file_name);
+struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool engine_obj, const char* file_name);
+void zenithra_render_object(struct InEngineData *engine_data_str, struct ObjectData **obj, int obj_num, GLuint tex_id);
 
 //-----------------------------------------------
 //Editor
 //-----------------------------------------------
 
-int* Zenithra_ObjectRayIntersectsDetection(float origin[3], struct object_data **obj, struct in_engine_data *engineDataStr);
+int* zenithra_object_ray_intersects_detection(float origin[3], struct ObjectData **obj, struct InEngineData *engine_data_str);

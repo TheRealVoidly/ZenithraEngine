@@ -9,9 +9,9 @@
 #include<stdbool.h>
 #include<SDL2/SDL_error.h>
 
-void Zenithra_LogTime();
-void Zenithra_LogMsg(const char* message);
-void Zenithra_LogErr(const char* fileName, int line, const char* errorMessage);
-void Zenithra_LogInit();
-void Zenithra_LogClose(bool succesfull);
-void Zenithra_LogMsgSafe(const char* message);
+void zenithra_log_time();
+void zenithra_log_msg(const char* message);
+void zenithra_log_err(const char* file_name, int line, const char* error_message);
+void zenithra_log_init();
+void zenithra_log_close(bool successful);
+void zenithra_log_msg_safe(const char* message);

@@ -1,45 +1,45 @@
 #include"zenithra_core.h"
 #include<signal.h>
 
-struct in_engine_data* Zenithra_Init(int x, int y){
-    signal(SIGSEGV, Zenithra_SignalCatch);
+struct InEngineData* zenithra_init(int x, int y){
+    signal(SIGSEGV, zenithra_signal_catch);
     
-    struct in_engine_data *engineDataStr = (struct in_engine_data*)malloc(sizeof(*engineDataStr));
-    engineDataStr->SDL = (struct sdl_engine_data*)malloc(sizeof(*engineDataStr->SDL));
-    engineDataStr->GL = (struct gl_engine_data*)malloc(sizeof(*engineDataStr->GL));
-    engineDataStr->MOVE = (struct movement_engine_data*)malloc(sizeof(*engineDataStr->MOVE));
-    engineDataStr->KEYS = (struct keys_engine_data*)malloc(sizeof(*engineDataStr->KEYS));
+    struct InEngineData *engine_data_str = (struct InEngineData*)malloc(sizeof(*engine_data_str));
+    engine_data_str->SDL = (struct SDLEngineData*)malloc(sizeof(*engine_data_str->SDL));
+    engine_data_str->GL = (struct GLEngineData*)malloc(sizeof(*engine_data_str->GL));
+    engine_data_str->MOVE = (struct MovementEngineData*)malloc(sizeof(*engine_data_str->MOVE));
+    engine_data_str->KEYS = (struct KeysEngineData*)malloc(sizeof(*engine_data_str->KEYS));
 
-    engineDataStr->objNum = 0;
-    engineDataStr->SDL->focusLost = false;
+    engine_data_str->obj_num = 0;
+    engine_data_str->SDL->focus_lost = false;
 
-    Zenithra_LogInit();
-    Zenithra_InitMovementVals(engineDataStr);
-    Zenithra_InitKeys(engineDataStr);
+    zenithra_log_init();
+    zenithra_init_movement_vals(engine_data_str);
+    zenithra_init_keys(engine_data_str);
 
-    engineDataStr->window_x = x;
-    engineDataStr->window_y = y;
+    engine_data_str->window_x = x;
+    engine_data_str->window_y = y;
 
     DEV_CONSOLE_CREATE;
 
-    if(!Zenithra_InitializeSDL(engineDataStr)){
-        Zenithra_CriticalErrorOccured(engineDataStr, __FILE__, __LINE__, "Failed to initialize SDL");
+    if(!zenithra_initialize_sdl(engine_data_str)){
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "Failed to initialize SDL");
     }
 
-    if(!Zenithra_InitializeOpenGL(engineDataStr)){
-        Zenithra_CriticalErrorOccured(engineDataStr, __FILE__, __LINE__, "Failed to initialize OpenGL");
+    if(!zenithra_initialize_opengl(engine_data_str)){
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "Failed to initialize OpenGL");
     }else{
-        Zenithra_LogMsg("OpenGL initialized successfuly");
+        zenithra_log_msg("OpenGL initialized successfuly");
     }
 
-    Zenithra_LogMsg("Zenithra initialized successfuly");
+    zenithra_log_msg("Zenithra initialized successfuly");
 
-    return engineDataStr;
+    return engine_data_str;
 }
 
-bool Zenithra_InitializeSDL(struct in_engine_data *engineDataStr){
+bool zenithra_initialize_sdl(struct InEngineData *engine_data_str){
     if(SDL_Init(SDL_INIT_VIDEO) < 0){
-        Zenithra_CriticalErrorOccured(engineDataStr, __FILE__, __LINE__, SDL_GetError());
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -56,28 +56,28 @@ bool Zenithra_InitializeSDL(struct in_engine_data *engineDataStr){
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
-    engineDataStr->SDL->window = SDL_CreateWindow("Zenithra Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, engineDataStr->window_x, engineDataStr->window_y, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
-    if(engineDataStr->SDL->window == NULL){
-        Zenithra_CriticalErrorOccured(engineDataStr, __FILE__, __LINE__, SDL_GetError());
+    engine_data_str->SDL->window = SDL_CreateWindow("Zenithra Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, engine_data_str->window_x, engine_data_str->window_y, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+    if(engine_data_str->SDL->window == NULL){
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
 
-    engineDataStr->SDL->renderer = SDL_CreateRenderer(engineDataStr->SDL->window, -1, 0);
-    if(engineDataStr->SDL->renderer == NULL){
-        Zenithra_CriticalErrorOccured(engineDataStr, __FILE__, __LINE__, SDL_GetError());
+    engine_data_str->SDL->renderer = SDL_CreateRenderer(engine_data_str->SDL->window, -1, 0);
+    if(engine_data_str->SDL->renderer == NULL){
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
 
-    SDL_GLContext context = SDL_GL_CreateContext(engineDataStr->SDL->window);
+    SDL_GLContext context = SDL_GL_CreateContext(engine_data_str->SDL->window);
     if(!context){
-        Zenithra_CriticalErrorOccured(engineDataStr, __FILE__, __LINE__, SDL_GetError());
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
 
     glewExperimental = GL_TRUE;
-    GLenum glewError = glewInit();
-    if(glewError != GLEW_OK){
-        Zenithra_CriticalErrorOccured(engineDataStr, __FILE__, __LINE__, (const char*)glewGetErrorString(glewError));
+    GLenum glew_error = glewInit();
+    if(glew_error != GLEW_OK){
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, (const char*)glewGetErrorString(glew_error));
     }
     if(SDL_GL_SetSwapInterval(1) < 0){
-        Zenithra_CriticalErrorOccured(engineDataStr, __FILE__, __LINE__, SDL_GetError());
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -85,31 +85,31 @@ bool Zenithra_InitializeSDL(struct in_engine_data *engineDataStr){
     return true;
 }
 
-void Zenithra_Destroy(struct in_engine_data *engineDataStr){
-    glDeleteProgram(engineDataStr->GL->programID);
-    glDeleteVertexArrays(1, &engineDataStr->GL->vertexArrayID);
-    SDL_DestroyRenderer(engineDataStr->SDL->renderer);
-    SDL_DestroyWindow(engineDataStr->SDL->window);
+void zenithra_destroy(struct InEngineData *engine_data_str){
+    glDeleteProgram(engine_data_str->GL->program_id);
+    glDeleteVertexArrays(1, &engine_data_str->GL->vertex_array_id);
+    SDL_DestroyRenderer(engine_data_str->SDL->renderer);
+    SDL_DestroyWindow(engine_data_str->SDL->window);
 
-    Zenithra_Free((void*)&engineDataStr->MOVE);
-    Zenithra_Free((void*)&engineDataStr->SDL);
-    Zenithra_Free((void*)&engineDataStr->GL);
-    Zenithra_Free((void*)&engineDataStr);
+    zenithra_free((void*)&engine_data_str->MOVE);
+    zenithra_free((void*)&engine_data_str->SDL);
+    zenithra_free((void*)&engine_data_str->GL);
+    zenithra_free((void*)&engine_data_str);
 
     SDL_Quit();
-    Zenithra_LogClose(true);
+    zenithra_log_close(true);
     exit(1);
 }
 
-void Zenithra_CriticalErrorOccured(struct in_engine_data *engineDataStr, char* fileName, int line, const char* error){
+void zenithra_critical_error_occured(struct InEngineData *engine_data_str, char* file_name, int line, const char* error){
     fprintf(stdout, "%s\n", error);
-    Zenithra_LogErr(fileName, line, error);
-    Zenithra_LogMsg("Error Is Critcal - Exiting Now");
-    Zenithra_Destroy(engineDataStr);
+    zenithra_log_err(file_name, line, error);
+    zenithra_log_msg("Error Is Critcal - Exiting Now");
+    zenithra_destroy(engine_data_str);
     exit(1);
 }
 
-bool Zenithra_InitializeOpenGL(struct in_engine_data *engineDataStr){
+bool zenithra_initialize_opengl(struct InEngineData *engine_data_str){
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
     glEnable(GL_MULTISAMPLE);
@@ -118,18 +118,18 @@ bool Zenithra_InitializeOpenGL(struct in_engine_data *engineDataStr){
     glDepthFunc(GL_LESS);
     glCullFace(GL_BACK);
 
-    glGenVertexArrays(1, &engineDataStr->GL->vertexArrayID);
-    glBindVertexArray(engineDataStr->GL->vertexArrayID);
+    glGenVertexArrays(1, &engine_data_str->GL->vertex_array_id);
+    glBindVertexArray(engine_data_str->GL->vertex_array_id);
 
-    engineDataStr->GL->programID = Zenithra_LoadShaders(engineDataStr);
-    engineDataStr->GL->matrixID = glGetUniformLocation(engineDataStr->GL->programID, "mvp");
+    engine_data_str->GL->program_id = zenithra_load_shaders(engine_data_str);
+    engine_data_str->GL->matrix_id = glGetUniformLocation(engine_data_str->GL->program_id, "mvp");
 
     return true;
 }
 
-void Zenithra_Free(void **pp){
+void zenithra_free(void **pp){
     if(!*pp){
-        Zenithra_LogMsg("Attempt to free null pointer");
+        zenithra_log_msg("Attempt to free null pointer");
         return;
     }
 
@@ -140,41 +140,18 @@ void Zenithra_Free(void **pp){
     p = NULL;
 }
 
-void Zenithra_FreeList(void **head){
-    if(!*head){
-        Zenithra_LogMsg("Attempt to free null list");
-        return;
-    }
-
-    struct temp_list{
-        struct temp_list *next;
-        char *temp_arr_fill;
-    };
-
-    void *temp;
-    while(((void*)(((struct temp_list*)*head)->next))){
-        temp = *head;
-        *head = ((void*)(((struct temp_list*)*head)->next));
-        Zenithra_Free(&temp);
-        if(!((void*)(((struct temp_list*)*head)->next))){
-            Zenithra_Free(head);
-            break;
-        }
-    }
-}
-
 #ifdef _WIN32
-void Zenithra_SignalCatch(int n){
+void zenithra_signal_catch(int n){
     switch(n){
     case SIGSEGV:
-        Zenithra_LogMsgSafe("SIGSEGV");
+        zenithra_log_msg_safe("SIGSEGV");
         write(STDOUT_FILENO, "SIGSEGV\n", sizeof("SIGSEGV\n"));
         _exit(1);
         break;
     }
 }
 #else
-void Zenithra_SignalCatch(int n){
+void zenithra_signal_catch(int n){
     void *buffer[10];
     char **callstack;
     int frames, i;
@@ -183,13 +160,13 @@ void Zenithra_SignalCatch(int n){
     callstack = backtrace_symbols(buffer, frames);
 
     for(i = 0; i < frames; i++){
-        Zenithra_LogMsgSafe(callstack[i]);
-        Zenithra_LogMsgSafe("\n");
+        zenithra_log_msg_safe(callstack[i]);
+        zenithra_log_msg_safe("\n");
     }
 
     switch(n){
     case SIGSEGV:
-        Zenithra_LogMsgSafe("SIGSEGV");
+        zenithra_log_msg_safe("SIGSEGV");
         write(STDOUT_FILENO, "SIGSEGV\n", sizeof("SIGSEGV\n"));
         _exit(1);
         break;
@@ -197,30 +174,7 @@ void Zenithra_SignalCatch(int n){
 }
 #endif
 
-void* Zenithra_CreateNode(void **node, bool isHead, int structTypeSize){
-    struct temp_list{
-        struct temp_list *next;
-        char temp_arr_fill[structTypeSize-8];
-    };
-    void *newNode;
-
-    if(isHead == true){
-        newNode = (void*)malloc(sizeof(struct temp_list));
-        ((struct temp_list*)newNode)->next = NULL;
-    }else{
-        if(((void*)(((struct temp_list*)*node)->next))){
-            Zenithra_LogMsg("Attempt to create node with non-NULL pointer");
-            return newNode;
-        }
-        ((struct temp_list*)*node)->next = (void*)malloc(sizeof(struct temp_list));
-        newNode = ((void*)(((struct temp_list*)*node)->next));
-        ((struct temp_list*)newNode)->next = NULL;
-    }
-    
-    return (struct temp_list*)newNode;
-}
-
-void Zenithra_InitKeys(struct in_engine_data *engineDataStr){
-    engineDataStr->KEYS->escape = false;
-    engineDataStr->KEYS->rShift = false;
+void zenithra_init_keys(struct InEngineData *engine_data_str){
+    engine_data_str->KEYS->escape = false;
+    engine_data_str->KEYS->r_shift = false;
 }

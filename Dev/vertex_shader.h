@@ -1,6 +1,6 @@
 #include<GL/glew.h>
 
-const GLchar* vertexShaderSource[] = {
+const GLchar* vertex_shader_source[] = {
     "#version 330 core\n\
     \
     layout(location = 0) in vec3 vertexPosition;\

@@ -1,56 +1,53 @@
 #include"zenithra_core.h"
 #include"zenithra_debug.h"
 
-void Zenithra_TestEditor(struct in_engine_data *engineDataStr);
+void zenithra_test_editor(struct InEngineData *engine_data_str);
 
 int main(int argc, char *argv[]){
-    struct in_engine_data *engineDataStr;
+    struct InEngineData *engine_data_str = zenithra_init(1200, 700);
 
-    engineDataStr = Zenithra_Init(1200, 700);
+    zenithra_test_editor(engine_data_str);
 
-    Zenithra_TestEditor(engineDataStr);
-
-    Zenithra_Destroy(engineDataStr);
+    zenithra_destroy(engine_data_str);
     return 0;
 }
 
-void Zenithra_TestEditor(struct in_engine_data *engineDataStr){
-    int i, *objectRay;
-    bool programShouldQuit = false;
-    Uint64 lastFrameTime = 0, currentFrameTime = 0;
+void zenithra_test_editor(struct InEngineData *engine_data_str){
+    bool program_should_quit = false;
+    Uint64 last_frame_time = 0, current_frame_time = 0;
 
-    struct object_data **obj;
-    obj = (struct object_data**)malloc(4 * sizeof(struct object_data));
-    obj[0] = Zenithra_LoadOBJ(engineDataStr, true, "./EngineData/VectorArrows/vectorarrowx.obj");
-    obj[1] = Zenithra_LoadOBJ(engineDataStr, true, "./EngineData/VectorArrows/vectorarrowy.obj");
-    obj[2] = Zenithra_LoadOBJ(engineDataStr, true, "./EngineData/VectorArrows/vectorarrowz.obj");
-    obj[3] = Zenithra_LoadOBJ(engineDataStr, false, "./GameData/Objects/tifa.obj");
-    GLuint texRed = Zenithra_CreateTexture("./EngineData/Colors/red.DDS");
-    GLuint texGreen = Zenithra_CreateTexture("./EngineData/Colors/green.DDS");
-    GLuint texBlue = Zenithra_CreateTexture("./EngineData/Colors/blue.DDS");
-    //GLuint texGiga = Zenithra_CreateTexture("./GameData/Textures/mugshot1.DDS");
-    //GLuint texGravel = Zenithra_CreateTexture("./Textures/gravel.DDS");
+    struct ObjectData **obj;
+    obj = (struct ObjectData**)malloc(4 * sizeof(struct ObjectData));
+    obj[0] = zenithra_load_obj(engine_data_str, true, "./EngineData/VectorArrows/vectorarrowx.obj");
+    obj[1] = zenithra_load_obj(engine_data_str, true, "./EngineData/VectorArrows/vectorarrowy.obj");
+    obj[2] = zenithra_load_obj(engine_data_str, true, "./EngineData/VectorArrows/vectorarrowz.obj");
+    obj[3] = zenithra_load_obj(engine_data_str, false, "./GameData/Objects/tifa.obj");
+    GLuint tex_red = zenithra_create_texture("./EngineData/Colors/red.DDS");
+    GLuint tex_green = zenithra_create_texture("./EngineData/Colors/green.DDS");
+    GLuint tex_blue = zenithra_create_texture("./EngineData/Colors/blue.DDS");
+    //GLuint tex_giga = zenithra_create_texture("./GameData/Textures/mugshot1.DDS");
+    //GLuint tex_gravel = zenithra_create_texture("./Textures/gravel.DDS");
 
     do{
-        lastFrameTime = currentFrameTime;
-        currentFrameTime = SDL_GetPerformanceCounter();
-        engineDataStr->deltaTime = (double)((currentFrameTime - lastFrameTime) * 1000 / (double)SDL_GetPerformanceFrequency());
+        last_frame_time = current_frame_time;
+        current_frame_time = SDL_GetPerformanceCounter();
+        engine_data_str->delta_time = (double)((current_frame_time - last_frame_time) * 1000 / (double)SDL_GetPerformanceFrequency());
 
-        Uint32 mouseButtonPressed = SDL_GetMouseState(NULL, NULL);
+        Uint32 mouse_button_pressed = SDL_GetMouseState(NULL, NULL);
 
-        if(!engineDataStr->SDL->focusLost){
-            Zenithra_CalcMouseMovement(engineDataStr);
+        if(!engine_data_str->SDL->focus_lost){
+            zenithra_calc_mouse_movement(engine_data_str);
 
-            if(SDL_BUTTON(3) == mouseButtonPressed){
-                Zenithra_UpdatePosition(engineDataStr);
+            if(SDL_BUTTON(3) == mouse_button_pressed){
+                zenithra_update_position(engine_data_str);
             }
         }
-        programShouldQuit = Zenithra_HandleEventPoll(engineDataStr);
+        program_should_quit = zenithra_handle_event_poll(engine_data_str);
 
         glClearColor(0.03f, 0.0f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        if(SDL_BUTTON(3) != mouseButtonPressed){
+        if(SDL_BUTTON(3) != mouse_button_pressed){
             glUseProgram(0); 
             glPointSize(3.0f);
             glBegin(GL_POINTS);
@@ -58,30 +55,30 @@ void Zenithra_TestEditor(struct in_engine_data *engineDataStr){
             glVertex2f(0.0f, 0.0f);
             glEnd();
         }
-        glUseProgram(engineDataStr->GL->programID);
+        glUseProgram(engine_data_str->GL->program_id);
 
-        objectRay = Zenithra_ObjectRayIntersectsDetection(engineDataStr->MOVE->position, obj, engineDataStr);
-        if(objectRay[0] == 1 && mouseButtonPressed != SDL_BUTTON(3)){
-            Zenithra_RenderObject(engineDataStr, obj, 0, texRed);
-            Zenithra_RenderObject(engineDataStr, obj, 1, texGreen);
-            Zenithra_RenderObject(engineDataStr, obj, 2, texBlue);
-            for(i = 1; i <= (obj[objectRay[1]]->objSize*3+48)-3; i=i+3){
-                obj[objectRay[1]]->vertex_buffer_data[i] += 0.1f;
+        int *object_ray = zenithra_object_ray_intersects_detection(engine_data_str->MOVE->position, obj, engine_data_str);
+        if(object_ray[0] == 1 && mouse_button_pressed != SDL_BUTTON(3)){
+            zenithra_render_object(engine_data_str, obj, 0, tex_red);
+            zenithra_render_object(engine_data_str, obj, 1, tex_green);
+            zenithra_render_object(engine_data_str, obj, 2, tex_blue);
+            /*for(int i = 1; i <= (obj[object_ray[1]]->obj_size*3+48)-3; i=i+3){
+                obj[object_ray[1]]->vertex_buffer_data[i] += 0.1f;
             }
-            glBindBuffer(GL_ARRAY_BUFFER, obj[objectRay[1]]->objVertexBuffer);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj[objectRay[1]]->objSize * 3, &obj[objectRay[1]]->vertex_buffer_data[0], GL_STATIC_DRAW);
+            glBindBuffer(GL_ARRAY_BUFFER, obj[object_ray[1]]->obj_vertex_buffer);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj[object_ray[1]]->obj_size * 3, &obj[object_ray[1]]->vertex_buffer_data[0], GL_STATIC_DRAW);*/
         }
-        Zenithra_Free((void**)&objectRay);
+        zenithra_free((void**)&object_ray);
 
-        Zenithra_RenderObject(engineDataStr, obj, 3, 0);
+        zenithra_render_object(engine_data_str, obj, 3, 0);
 
-        SDL_GL_SwapWindow(engineDataStr->SDL->window);
-    }while(!programShouldQuit);
+        SDL_GL_SwapWindow(engine_data_str->SDL->window);
+    }while(!program_should_quit);
 
 
-    for(i = 0; i < engineDataStr->objNum; i++){
-        glDeleteBuffers(1, &obj[i]->objVertexBuffer);
-        glDeleteBuffers(1, &obj[i]->objUVBuffer);
-        Zenithra_Free((void*)&obj[i]);
+    for(int i = 0; i < engine_data_str->obj_num; i++){
+        glDeleteBuffers(1, &obj[i]->obj_vertex_buffer);
+        glDeleteBuffers(1, &obj[i]->obj_uv_buffer);
+        zenithra_free((void*)&obj[i]);
     }
 }
