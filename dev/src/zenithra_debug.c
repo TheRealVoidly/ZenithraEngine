@@ -10,7 +10,7 @@ void zenithra_log_msg(const char* message){
 }
 
 void zenithra_log_msg_safe(const char* message){
-    int fd = open("./zenithra_log.txt", O_APPEND | O_WRONLY | O_CREAT, 0644);
+    int fd = open("./dev/zenithra_log.txt", O_APPEND | O_WRONLY | O_CREAT, 0644);
     write(fd, message, strlen(message));
     close(fd);
 }
@@ -29,10 +29,10 @@ void zenithra_log_time(){
 }
 
 void zenithra_log_init(){
-    g_log_fp = fopen("./zenithra_log.txt", "w");
+    g_log_fp = fopen("./dev/zenithra_log.txt", "w");
     zenithra_log_msg("Zenithra engine started");
     fclose(g_log_fp);
-    g_log_fp = fopen("./zenithra_log.txt", "a");
+    g_log_fp = fopen("./dev/zenithra_log.txt", "a");
 }
 
 void zenithra_log_close(bool successful){
