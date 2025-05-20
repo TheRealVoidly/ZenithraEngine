@@ -47,10 +47,10 @@ int* zenithra_object_ray_intersects_detection(float origin[3], struct ObjectData
 
     for(j = 0; j < engine_data_str->obj_num; j++){
         if(!obj[j]->engine_obj){
-            for(i = 0; i < obj[j]->obj_size-3; i=i+3){
-                v0 = &obj[j]->vertex_buffer_data[i + 0];
-                v1 = &obj[j]->vertex_buffer_data[i + 3];
-                v2 = &obj[j]->vertex_buffer_data[i + 6];
+            for(i = 0; i < obj[j]->obj_size-3; i+=3){
+                v0 = &obj[j]->vertex_buffer_data[i+0];
+                v1 = &obj[j]->vertex_buffer_data[i+3];
+                v2 = &obj[j]->vertex_buffer_data[i+6];
 
                 for(k = 0; k < 3; k++){
                     edge1[k] = v1[k] - v0[k];

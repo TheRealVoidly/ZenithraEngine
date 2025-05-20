@@ -2,6 +2,7 @@
     #include<windows.h>
     #include<stdio.h>
     #include<stdlib.h>
+    #include<conio.h>
 #else
     #include<execinfo.h>
     #include<unistd.h>
@@ -79,6 +80,10 @@ struct InEngineData{
 
     int obj_num;
 };
+
+#ifndef WIN32
+int _kbhit();
+#endif
 
 void zenithra_signal_catch(int n);
 void zenithra_free(void **pp);

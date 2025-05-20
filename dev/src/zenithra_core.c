@@ -178,3 +178,13 @@ void zenithra_init_keys(struct InEngineData *engine_data_str){
     engine_data_str->KEYS->escape = false;
     engine_data_str->KEYS->r_shift = false;
 }
+
+#ifndef _WIN32
+int _kbhit(){
+    struct timeval tv = {0L, 0L};
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(0, &fds); // file descriptor 0 = stdin
+    return select(1, &fds, NULL, NULL, &tv);
+}
+#endif
