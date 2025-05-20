@@ -17,14 +17,20 @@ void zenithra_calc_mouse_movement(struct InEngineData *engine_data_str){
 
 	engine_data_str->MOVE->horizontal_angle += engine_data_str->MOVE->mouse_speed * (float)(engine_data_str->window_x / 2.0f - engine_data_str->MOVE->x_pos);
 	engine_data_str->MOVE->vertical_angle += engine_data_str->MOVE->mouse_speed * (float)(engine_data_str->window_y / 2.0f - engine_data_str->MOVE->y_pos);
-
+	if(engine_data_str->MOVE->vertical_angle > 1.4f){
+		engine_data_str->MOVE->vertical_angle = 1.4f;
+	}
+	if(engine_data_str->MOVE->vertical_angle < -1.4f){
+		engine_data_str->MOVE->vertical_angle = -1.4f;
+	}
+	
 	if(old_x_pos != engine_data_str->MOVE->x_pos || old_y_pos != engine_data_str->MOVE->y_pos){
-		float walk_vector[3] = {
+		float look_vector[3] = {
 			cos(engine_data_str->MOVE->vertical_angle) * sin(engine_data_str->MOVE->horizontal_angle),
 			sin(engine_data_str->MOVE->vertical_angle),
 			cos(engine_data_str->MOVE->vertical_angle) * cos(engine_data_str->MOVE->horizontal_angle)
 		};
-		glm_vec3_make(walk_vector, engine_data_str->MOVE->direction_look);
+		glm_vec3_make(look_vector, engine_data_str->MOVE->direction_look);
 
 		mat4 view;
 		vec3 position_direction;
@@ -35,12 +41,12 @@ void zenithra_calc_mouse_movement(struct InEngineData *engine_data_str){
 }
 
 void zenithra_update_position(struct InEngineData *engine_data_str){
-	float walk_vector[3] = {
+	float look_vector[3] = {
 		cos(engine_data_str->MOVE->vertical_angle) * sin(engine_data_str->MOVE->horizontal_angle),
 		sin(engine_data_str->MOVE->vertical_angle),
 		cos(engine_data_str->MOVE->vertical_angle) * cos(engine_data_str->MOVE->horizontal_angle)
 	};
-	glm_vec3_make(walk_vector, engine_data_str->MOVE->direction_look);
+	glm_vec3_make(look_vector, engine_data_str->MOVE->direction_look);
 
 	float strafe_vector[3] = {
 		sin(engine_data_str->MOVE->horizontal_angle - 3.14f / 2.0f),

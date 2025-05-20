@@ -4,8 +4,6 @@ TODO
 
 -- Make objects scaleable
 
--- Fix camera free rotation causing mouse invert
-
 -- Write comments
 
 -- Create an editor

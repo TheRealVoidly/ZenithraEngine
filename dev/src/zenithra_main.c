@@ -17,16 +17,17 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
     Uint64 last_frame_time = 0, current_frame_time = 0;
 
     struct ObjectData **obj;
-    obj = (struct ObjectData**)malloc(4 * sizeof(struct ObjectData));
+    obj = (struct ObjectData**)malloc(5 * sizeof(struct ObjectData));
     obj[0] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowx.obj");
     obj[1] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowy.obj");
     obj[2] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowz.obj");
     obj[3] = zenithra_load_obj(engine_data_str, false, "./gamedata/objects/tifa.obj");
+    obj[4] = zenithra_load_obj(engine_data_str, false, "./gamedata/objects/plane.obj");
     GLuint tex_red = zenithra_create_texture("./enginedata/colors/red.DDS");
     GLuint tex_green = zenithra_create_texture("./enginedata/colors/green.DDS");
     GLuint tex_blue = zenithra_create_texture("./enginedata/colors/blue.DDS");
     //GLuint tex_giga = zenithra_create_texture("./gamedata/textures/mugshot1.DDS");
-    //GLuint tex_gravel = zenithra_create_texture("./gamedata/textures/gravel.DDS");
+    GLuint tex_gravel = zenithra_create_texture("./gamedata/textures/gravel.DDS");
 
     do{
         last_frame_time = current_frame_time;
@@ -71,6 +72,7 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
         zenithra_free((void**)&object_ray);
 
         zenithra_render_object(engine_data_str, obj, 3, 0);
+        zenithra_render_object(engine_data_str, obj, 4, tex_gravel);
 
         SDL_GL_SwapWindow(engine_data_str->SDL->window);
     }while(!program_should_quit);
