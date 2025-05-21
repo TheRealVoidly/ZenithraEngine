@@ -4,16 +4,12 @@ TODO
 
 -- Fix object detection not working for large objects in far edges
 
--- Fix segfault when moving many objects one after another
-
--- Bind different textures to different objects??
-
 -- Make objects scaleable
 
 -- Write comments
 
 -- Create an editor
-    -- Detect hover over object and load in direction arrows
+    !-- Detect hover over object and load in direction arrows
     	-- Make the arrows interactable with LMB and move the object
         -- Attach the arrows to the edges of the object temporarily, deattach and hide when not hovering over the object
 

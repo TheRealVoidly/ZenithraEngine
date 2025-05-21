@@ -119,6 +119,7 @@ struct ObjectData{
     GLuint obj_normal_buffer;
     GLuint obj_vertex_buffer;
     GLuint obj_uv_buffer;
+    GLuint obj_bound_texture;
 
     vec3 translation_vector;
 
@@ -129,8 +130,9 @@ struct ObjectData{
 
 GLuint zenithra_load_shaders(struct InEngineData *engine_data_str);
 GLuint zenithra_create_texture(const char* file_name);
-struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool engine_obj, const char* file_name);
-void zenithra_render_object(struct InEngineData *engine_data_str, struct ObjectData **obj, int obj_num, GLuint tex_id);
+struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool engine_obj, const char* object_file_name, const char* texture_file_name);
+void zenithra_render_object(struct InEngineData *engine_data_str, struct ObjectData **obj, int obj_num);
+void zenithra_rebind_texture(struct ObjectData *obj, const char* file_name);
 
 //-----------------------------------------------
 //Editor

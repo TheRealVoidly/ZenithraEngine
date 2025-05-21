@@ -43,7 +43,7 @@ GLuint zenithra_load_shaders(struct InEngineData *engine_data_str){
 	return program_id;
 }
 
-struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool engine_obj, const char* file_name){
+struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool engine_obj, const char* object_file_name, const char* texture_file_name){
 	FILE *fp = NULL;
 	char buffer[255];
 	int i = 0, res;
@@ -53,10 +53,10 @@ struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool 
 
 	GLfloat *uvs_buffer_data, *normals_buffer_data, *temp_vertex_buffer_data, *temp_normals_buffer_data, *temp_uvs_buffer_data;
 
-	fp = fopen(file_name, "r");
+	fp = fopen(object_file_name, "r");
 	if(!fp){
 		zenithra_log_err(__FILE__, __LINE__, "OBJ file could not be opened");
-		zenithra_log_msg(file_name);
+		zenithra_log_msg(object_file_name);
 		return NULL;
 	}
 
@@ -156,9 +156,15 @@ struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool 
 	zenithra_free((void**)&temp_normals_buffer_data);
 	zenithra_free((void**)&temp_uvs_buffer_data);
 
+	obj->obj_bound_texture = zenithra_create_texture(texture_file_name);
+
 	obj->engine_obj = engine_obj;
 	engine_data_str->obj_num++;
 	return obj;
+}
+
+void zenithra_rebind_texture(struct ObjectData *obj, const char* file_name){
+	obj->obj_bound_texture = zenithra_create_texture(file_name);
 }
 
 GLuint zenithra_create_texture(const char* file_name){
@@ -267,7 +273,7 @@ GLuint zenithra_create_texture(const char* file_name){
 	return texture_id;
 }
 
-void zenithra_render_object(struct InEngineData *engine_data_str, struct ObjectData **obj, int obj_num, GLuint tex_id){
+void zenithra_render_object(struct InEngineData *engine_data_str, struct ObjectData **obj, int obj_num){
 	mat4 projection, view, mvp;
 
 	if(obj[obj_num] == NULL){
@@ -288,7 +294,7 @@ void zenithra_render_object(struct InEngineData *engine_data_str, struct ObjectD
 
 	glUniformMatrix4fv(engine_data_str->GL->matrix_id, 1, GL_FALSE, &mvp[0][0]);
 
-	glBindTexture(GL_TEXTURE_2D, tex_id);
+	glBindTexture(GL_TEXTURE_2D, obj[obj_num]->obj_bound_texture);
 
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, obj[obj_num]->obj_vertex_buffer);
