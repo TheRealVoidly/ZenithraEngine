@@ -30,7 +30,7 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
     GLuint tex_green = zenithra_create_texture("./enginedata/colors/green.DDS");
     GLuint tex_blue = zenithra_create_texture("./enginedata/colors/blue.DDS");
     //GLuint tex_giga = zenithra_create_texture("./gamedata/textures/mugshot1.DDS");
-    //GLuint tex_gravel = zenithra_create_texture("./gamedata/textures/gravel.DDS");
+    GLuint tex_gravel = zenithra_create_texture("./gamedata/textures/gravel.DDS");
 
     int prev_object_num = engine_data_str->obj_num;
     do{
@@ -81,7 +81,7 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
 
         glClearColor(0.03f, 0.0f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
+
         if(SDL_BUTTON(3) != mouse_button_pressed){
             glUseProgram(0); 
             glPointSize(3.0f);
@@ -109,7 +109,7 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
 
         for(int i = 0; i < engine_data_str->obj_num; i++){
             if(!obj[i]->engine_obj){
-                zenithra_render_object(engine_data_str, obj, i, 0);
+                zenithra_render_object(engine_data_str, obj, i, tex_gravel);
             }
         }
         //zenithra_render_object(engine_data_str, obj, 3, 0);

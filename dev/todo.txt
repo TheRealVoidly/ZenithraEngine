@@ -2,6 +2,12 @@
 TODO
 -------------------------------------------------------
 
+-- Fix object detection not working for large objects in far edges
+
+-- Fix segfault when moving many objects one after another
+
+-- Bind different textures to different objects??
+
 -- Make objects scaleable
 
 -- Write comments
