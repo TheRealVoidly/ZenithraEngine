@@ -1,5 +1,0 @@
-*.exe
-main
-*.dll
-dev/zenithra_log.txt
-dev/src/*.o
