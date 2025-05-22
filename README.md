@@ -1,10 +1,8 @@
-"Voidly (TheRealVoidly on GitHub)" — creator of ZenithraEngine
-
 # ZenithraEngine
 A lightweight game engine made using C and SDL2, OpenGL
 
-# Build instructions
-Using Makefile - make (for Linux), make windows (for Windows), make clear (clears all compiled files)
+## Build instructions
+Using Makefile - make (for Linux), make windows (for Windows)
 
 # License
 ZenithraEngine is licensed under the ZenithraEngine License (ZEL) v1.0.
