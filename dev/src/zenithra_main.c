@@ -94,7 +94,7 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
             //zenithra_render_object(engine_data_str, obj, 1);
             //zenithra_render_object(engine_data_str, obj, 2);
 
-            for(int i = 0; i < obj[object_ray[1]]->obj_size * 3; i++){
+            /*for(int i = 0; i < obj[object_ray[1]]->obj_size * 3; i++){
                 obj[object_ray[1]]->bounded_vertex_buffer_data[i] = obj[object_ray[1]]->vertex_buffer_data[i];
             }
             for(int i = obj[object_ray[1]]->obj_size * 3; i < (obj[object_ray[1]]->obj_size * 3) + (obj[0]->obj_size * 3); i++){
@@ -102,6 +102,7 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
             }
             glBindBuffer(GL_ARRAY_BUFFER, obj[object_ray[1]]->obj_vertex_buffer);
             glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj[object_ray[1]]->obj_size * 3, &obj[object_ray[1]]->bounded_vertex_buffer_data[0], GL_STATIC_DRAW);
+            */
             if(mouse_button_pressed == SDL_BUTTON(1)){
                 /*for(int i = 1; i <= (obj[object_ray[1]]->obj_size * 3) - 3; i=i+3){
                     obj[object_ray[1]]->vertex_buffer_data[i] += 0.1f;

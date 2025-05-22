@@ -276,7 +276,7 @@ GLuint zenithra_create_texture(const char* file_name){
 void zenithra_render_object(struct InEngineData *engine_data_str, struct ObjectData **obj, int obj_num){
 	mat4 projection, view, mvp;
 
-	if(obj[obj_num] == NULL){
+	if(!obj[obj_num]){
 		return;
 	}
 
