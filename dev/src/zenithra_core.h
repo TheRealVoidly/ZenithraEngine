@@ -124,6 +124,7 @@ struct ObjectData{
     vec3 translation_vector;
 
     GLfloat *vertex_buffer_data;
+    GLfloat *bounded_vertex_buffer_data;
 
     bool engine_obj;
 };

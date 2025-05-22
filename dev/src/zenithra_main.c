@@ -19,7 +19,7 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
     memset(input_buffer, 0, sizeof(input_buffer));
     int input_buffer_n = 0;
 
-    struct ObjectData **obj, **temp;
+    struct ObjectData **obj;
     obj = (struct ObjectData**)malloc(4 * sizeof(struct ObjectData));
     obj[0] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowx.obj", "./enginedata/colors/red.DDS");
     obj[1] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowy.obj", "./enginedata/colors/green.DDS");
@@ -55,9 +55,10 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
         }
 
         if(prev_object_num != engine_data_str->obj_num){
-            temp = (struct ObjectData**)realloc(obj, sizeof(struct ObjectData) * (engine_data_str->obj_num+1));
+            struct ObjectData **temp = (struct ObjectData**)realloc(obj, sizeof(struct ObjectData) * (engine_data_str->obj_num+1));
             if(temp != NULL){
                 obj = temp;
+                temp = NULL;
                 prev_object_num = engine_data_str->obj_num;
             }else{
                 zenithra_log_err(__FILE__, __LINE__, "Object realloc failed! Object will not be loaded!\n");
@@ -89,15 +90,22 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
 
         int *object_ray = zenithra_object_ray_intersects_detection(engine_data_str->MOVE->position, obj, engine_data_str);
         if(object_ray[0] == 1 && mouse_button_pressed != SDL_BUTTON(3)){
-            zenithra_render_object(engine_data_str, obj, 0);
-            zenithra_render_object(engine_data_str, obj, 1);
-            zenithra_render_object(engine_data_str, obj, 2);
+            //zenithra_render_object(engine_data_str, obj, 0);
+            //zenithra_render_object(engine_data_str, obj, 1);
+            //zenithra_render_object(engine_data_str, obj, 2);
+
+            for(int i = 0; i < obj[object_ray[1]]->obj_size * 3; i++){
+                obj[object_ray[1]]->bounded_vertex_buffer_data[i] = obj[object_ray[1]]->vertex_buffer_data[i];
+            }
+            for(int i = obj[object_ray[1]]->obj_size * 3; i < (obj[object_ray[1]]->obj_size * 3) + (obj[0]->obj_size * 3); i++){
+                obj[object_ray[1]]->bounded_vertex_buffer_data[i] = obj[object_ray[1]]->vertex_buffer_data[i];
+            }
+            glBindBuffer(GL_ARRAY_BUFFER, obj[object_ray[1]]->obj_vertex_buffer);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj[object_ray[1]]->obj_size * 3, &obj[object_ray[1]]->bounded_vertex_buffer_data[0], GL_STATIC_DRAW);
             if(mouse_button_pressed == SDL_BUTTON(1)){
-                for(int i = 1; i <= (obj[object_ray[1]]->obj_size*3)-3; i=i+3){
+                /*for(int i = 1; i <= (obj[object_ray[1]]->obj_size * 3) - 3; i=i+3){
                     obj[object_ray[1]]->vertex_buffer_data[i] += 0.1f;
-                }
-                glBindBuffer(GL_ARRAY_BUFFER, obj[object_ray[1]]->obj_vertex_buffer);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj[object_ray[1]]->obj_size * 3, &obj[object_ray[1]]->vertex_buffer_data[0], GL_STATIC_DRAW);
+                }*/
             }
         }
         zenithra_free((void**)&object_ray);
