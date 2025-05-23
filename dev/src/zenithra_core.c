@@ -29,10 +29,10 @@ struct InEngineData* zenithra_init(int x, int y){
     if(!zenithra_initialize_opengl(engine_data_str)){
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "Failed to initialize OpenGL");
     }else{
-        zenithra_log_msg("OpenGL initialized successfuly");
+        zenithra_log_msg("OpenGL initialized successfully");
     }
 
-    zenithra_log_msg("Zenithra initialized successfuly");
+    zenithra_log_msg("Zenithra initialized successfully");
 
     return engine_data_str;
 }

@@ -37,7 +37,7 @@ void zenithra_log_init(){
 
 void zenithra_log_close(bool successful){
     if(successful == true){
-        zenithra_log_msg("Zenithra exited succesfully");
+        zenithra_log_msg("Zenithra exited successfully");
         fclose(g_log_fp);
     }else{
         zenithra_log_msg("Zenithra exited unexpectedly");

@@ -24,8 +24,6 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
     obj[0] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowx.obj", "./enginedata/colors/red.DDS");
     obj[1] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowy.obj", "./enginedata/colors/green.DDS");
     obj[2] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowz.obj", "./enginedata/colors/blue.DDS");
-    //GLuint tex_giga = zenithra_create_texture("./gamedata/textures/mugshot1.DDS");
-    GLuint tex_gravel = zenithra_create_texture("./gamedata/textures/gravel.DDS");
 
     int prev_object_num = engine_data_str->obj_num;
     do{
@@ -99,10 +97,8 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
             }
             for(int i = obj[object_ray[1]]->obj_size * 3; i < (obj[object_ray[1]]->obj_size * 3) + (obj[0]->obj_size * 3); i++){
                 obj[object_ray[1]]->bounded_vertex_buffer_data[i] = obj[object_ray[1]]->vertex_buffer_data[i];
-            }
-            glBindBuffer(GL_ARRAY_BUFFER, obj[object_ray[1]]->obj_vertex_buffer);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj[object_ray[1]]->obj_size * 3, &obj[object_ray[1]]->bounded_vertex_buffer_data[0], GL_STATIC_DRAW);
-            */
+            }*/
+            
             if(mouse_button_pressed == SDL_BUTTON(1)){
                 /*for(int i = 1; i <= (obj[object_ray[1]]->obj_size * 3) - 3; i=i+3){
                     obj[object_ray[1]]->vertex_buffer_data[i] += 0.1f;

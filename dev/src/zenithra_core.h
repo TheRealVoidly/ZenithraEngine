@@ -134,6 +134,8 @@ GLuint zenithra_create_texture(const char* file_name);
 struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool engine_obj, const char* object_file_name, const char* texture_file_name);
 void zenithra_render_object(struct InEngineData *engine_data_str, struct ObjectData **obj, int obj_num);
 void zenithra_rebind_texture(struct ObjectData *obj, const char* file_name);
+void zenithra_bind_objects(struct ObjectData **obj, int objects_to_be_bound[255], int target_object);
+void zenithra_unbind_objects(struct ObjectData *obj);
 
 //-----------------------------------------------
 //Editor

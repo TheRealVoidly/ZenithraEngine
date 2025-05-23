@@ -46,12 +46,9 @@ GLuint zenithra_load_shaders(struct InEngineData *engine_data_str){
 struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool engine_obj, const char* object_file_name, const char* texture_file_name){
 	FILE *fp = NULL;
 	char buffer[255];
-	int i = 0, res;
 	long long triangles = 0;
 
 	struct ObjectData *obj = (void*)malloc(sizeof(struct ObjectData));
-
-	GLfloat *uvs_buffer_data, *normals_buffer_data, *temp_vertex_buffer_data, *temp_normals_buffer_data, *temp_uvs_buffer_data;
 
 	fp = fopen(object_file_name, "r");
 	if(!fp){
@@ -61,7 +58,7 @@ struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool 
 	}
 
 	while(1){
-		res = fscanf(fp, "%s", buffer);
+		int res = fscanf(fp, "%s", buffer);
 
 		if(res == EOF){
 			break;
@@ -78,8 +75,9 @@ struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool 
 	face_buffer_data = (int*)malloc(sizeof(int) * (obj->obj_size * 3));
 
 	fseek(fp, 0, SEEK_SET);
+	int i = 0;
 	while(1){
-		res = fscanf(fp, "%s", buffer);
+		int res = fscanf(fp, "%s", buffer);
 
 		if(res == EOF){
 			break;
@@ -92,14 +90,14 @@ struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool 
 	}
 
 	obj->vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->obj_size * 3));
-	uvs_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->obj_size * 2));
-	normals_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->obj_size * 3));
-	temp_vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->obj_size * 3));
-	temp_uvs_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->obj_size * 2));
-	temp_normals_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->obj_size * 3));
+	GLfloat *uvs_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->obj_size * 2));
+	GLfloat *normals_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->obj_size * 3));
+	GLfloat *temp_vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->obj_size * 3));
+	GLfloat *temp_uvs_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->obj_size * 2));
+	GLfloat *temp_normals_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * (obj->obj_size * 3));
 
 	fseek(fp, 0, SEEK_SET);
-	res = fscanf(fp, "%s", buffer);
+	int res = fscanf(fp, "%s", buffer);
 	int a = 0, b = 0, c = 0;
 	while(res != EOF){
 		res = fscanf(fp, "%s", buffer);
@@ -118,11 +116,10 @@ struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool 
 	}
 	fclose(fp);
 
-	int vi, ti, ni, uv_i;
-	for (i = 0; i < obj->obj_size * 3; i += 3) {
-		vi = face_buffer_data[i] - 1;
-		ti = face_buffer_data[i+1] - 1;
-		ni = face_buffer_data[i+2] - 1;
+	for(int i = 0; i < obj->obj_size * 3; i+=3){
+		int vi = face_buffer_data[i] - 1;
+		int ti = face_buffer_data[i+1] - 1;
+		int ni =  face_buffer_data[i+2] - 1;
 
 		obj->vertex_buffer_data[i] = temp_vertex_buffer_data[vi*3];
 		obj->vertex_buffer_data[i+1] = temp_vertex_buffer_data[vi*3+1];
@@ -132,7 +129,7 @@ struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool 
 		normals_buffer_data[i+1] = temp_normals_buffer_data[ni*3+1];
 		normals_buffer_data[i+2] = temp_normals_buffer_data[ni*3+2];
 
-		uv_i = (i / 3) * 2;
+		int uv_i = (i / 3) * 2;
 		uvs_buffer_data[uv_i] = temp_uvs_buffer_data[ti*2];
 		uvs_buffer_data[uv_i+1] = temp_uvs_buffer_data[ti*2+1];
 	}
