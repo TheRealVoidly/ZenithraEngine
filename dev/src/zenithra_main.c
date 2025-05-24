@@ -88,17 +88,16 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
 
         int *object_ray = zenithra_object_ray_intersects_detection(engine_data_str->MOVE->position, obj, engine_data_str);
         if(object_ray[0] == 1 && mouse_button_pressed != SDL_BUTTON(3)){
-            //zenithra_render_object(engine_data_str, obj, 0);
-            //zenithra_render_object(engine_data_str, obj, 1);
-            //zenithra_render_object(engine_data_str, obj, 2);
+            zenithra_unbind_objects(obj[0]);
+            zenithra_unbind_objects(obj[1]);
+            zenithra_unbind_objects(obj[2]);
 
-            /*for(int i = 0; i < obj[object_ray[1]]->obj_size * 3; i++){
-                obj[object_ray[1]]->bounded_vertex_buffer_data[i] = obj[object_ray[1]]->vertex_buffer_data[i];
-            }
-            for(int i = obj[object_ray[1]]->obj_size * 3; i < (obj[object_ray[1]]->obj_size * 3) + (obj[0]->obj_size * 3); i++){
-                obj[object_ray[1]]->bounded_vertex_buffer_data[i] = obj[object_ray[1]]->vertex_buffer_data[i];
-            }*/
-            
+            int temp_array[255] = {0, 0, 1, 1, 2, 2, -1};
+            zenithra_bind_objects(obj, temp_array, object_ray[1]);
+
+            zenithra_render_object(engine_data_str, obj, 0);
+            zenithra_render_object(engine_data_str, obj, 1);
+            zenithra_render_object(engine_data_str, obj, 2);
             if(mouse_button_pressed == SDL_BUTTON(1)){
                 /*for(int i = 1; i <= (obj[object_ray[1]]->obj_size * 3) - 3; i=i+3){
                     obj[object_ray[1]]->vertex_buffer_data[i] += 0.1f;

@@ -2,45 +2,60 @@
 #include<time.h>
 #include<stdio.h>
 
-FILE *g_log_fp;
-
 void zenithra_log_msg(const char* message){
-    zenithra_log_time();
-    fprintf(g_log_fp, "%s\n", message);
-}
-
-void zenithra_log_msg_safe(const char* message){
     int fd = open("./dev/zenithra_log.txt", O_APPEND | O_WRONLY | O_CREAT, 0644);
+    char *t_buffer = zenithra_get_time();
+    write(fd, t_buffer, strlen(t_buffer));
+    free(t_buffer);
     write(fd, message, strlen(message));
+    write(fd, "\n", strlen("\n"));
     close(fd);
 }
 
 void zenithra_log_err(const char* file_name, int line, const char* error_message){
-    zenithra_log_time();
-    fprintf(g_log_fp, "%s - in file %s on line %d\n", error_message, file_name, line);
+    int fd = open("./dev/zenithra_log.txt", O_APPEND | O_WRONLY | O_CREAT, 0644);
+    char *t_buffer = zenithra_get_time();
+    write(fd, t_buffer, strlen(t_buffer));
+    free(t_buffer);
+    write(fd, file_name, strlen(file_name));
+    char buffer[255];
+    sprintf(buffer, "%d", line);
+    write(fd, buffer, strlen(buffer));
+    write(fd, error_message, strlen(error_message));
+    write(fd, "\n", strlen("\n"));
+    close(fd);
     SDL_ClearError();
 }
 
-void zenithra_log_time(){
+char* zenithra_get_time(){
+    char *buffer;
+    buffer = (char*)malloc(sizeof(char) * 255);
     time_t rawtime = time(NULL);
     struct tm *time_info;
     time_info = localtime(&rawtime);
-    fprintf(g_log_fp, "%02d:%02d:%02d: ", time_info->tm_hour, time_info->tm_min, time_info->tm_sec);
+    sprintf(buffer, "%02d:%02d:%02d: ", time_info->tm_hour, time_info->tm_min, time_info->tm_sec);
+    return buffer;
 }
 
 void zenithra_log_init(){
-    g_log_fp = fopen("./dev/zenithra_log.txt", "w");
-    zenithra_log_msg("Zenithra engine started");
-    fclose(g_log_fp);
-    g_log_fp = fopen("./dev/zenithra_log.txt", "a");
+    int fd = open("./dev/zenithra_log.txt", O_TRUNC | O_WRONLY | O_CREAT, 0644);
+    char *t_buffer = zenithra_get_time();
+    write(fd, t_buffer, strlen(t_buffer));
+    free(t_buffer);
+    write(fd, "Zenithra engine started", strlen("Zenithra engine started"));
+    write(fd, "\n", strlen("\n"));
+    close(fd);
 }
 
-void zenithra_log_close(bool successful){
-    if(successful == true){
-        zenithra_log_msg("Zenithra exited successfully");
-        fclose(g_log_fp);
+void zenithra_log_close(bool successfull){
+    int fd = open("./dev/zenithra_log.txt", O_APPEND | O_WRONLY | O_CREAT, 0644);
+    char *t_buffer = zenithra_get_time();
+    write(fd, t_buffer, strlen(t_buffer));
+    free(t_buffer);
+    if(successfull == true){
+        write(fd, "Zenithra exited successfully", strlen("Zenithra exited successfully"));
     }else{
-        zenithra_log_msg("Zenithra exited unexpectedly");
-        fclose(g_log_fp);
+        write(fd, "Zenithra exited unexpectedly", strlen("Zenithra exited unexpectedly"));
     }
+    close(fd);
 }

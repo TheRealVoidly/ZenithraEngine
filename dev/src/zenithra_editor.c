@@ -50,7 +50,7 @@ int* zenithra_object_ray_intersects_detection(float origin[3], struct ObjectData
 
     for(int j = 0; j < engine_data_str->obj_num; j++){
         if(!obj[j]->engine_obj){
-            for(int i = 0; i < obj[j]->obj_size-3; i+=3){
+            for(int i = 0; i < obj[j]->obj_size * 3; i+=3){
                 v0 = &obj[j]->vertex_buffer_data[i+0];
                 v1 = &obj[j]->vertex_buffer_data[i+3];
                 v2 = &obj[j]->vertex_buffer_data[i+6];

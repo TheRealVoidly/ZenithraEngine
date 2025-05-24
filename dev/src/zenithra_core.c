@@ -144,30 +144,41 @@ void zenithra_free(void **pp){
 void zenithra_signal_catch(int n){
     switch(n){
     case SIGSEGV:
-        zenithra_log_msg_safe("SIGSEGV");
+        int fd = open("./dev/zenithra_log.txt", O_APPEND | O_WRONLY | O_CREAT, 0644);
+        char *t_buffer = zenithra_get_time();
+        write(fd, t_buffer, strlen(t_buffer));
+        free(t_buffer);
+        write(fd, "SIGSEGV", strlen("SIGSEGV"));
         write(STDOUT_FILENO, "SIGSEGV\n", sizeof("SIGSEGV\n"));
+        close(fd);
         _exit(1);
         break;
     }
 }
 #else
 void zenithra_signal_catch(int n){
-    void *buffer[10];
+    void *buffer[15];
     char **callstack;
-    int frames, i;
 
-    frames = backtrace(buffer, 10);
+    int frames = backtrace(buffer, 15);
     callstack = backtrace_symbols(buffer, frames);
 
-    for(i = 0; i < frames; i++){
-        zenithra_log_msg_safe(callstack[i]);
-        zenithra_log_msg_safe("\n");
+    int fd = open("./dev/zenithra_log.txt", O_APPEND | O_WRONLY | O_CREAT, 0644);
+
+    for(int i = frames - 1; i > 0; i--){
+        write(fd, callstack[i], strlen(callstack[i]));
+        write(fd, "\n", strlen("\n"));
     }
 
+    char *t_buffer;
     switch(n){
     case SIGSEGV:
-        zenithra_log_msg_safe("SIGSEGV");
+        t_buffer = zenithra_get_time();
+        write(fd, t_buffer, strlen(t_buffer));
+        free(t_buffer);
+        write(fd, "SIGSEGV", strlen("SIGSEGV"));
         write(STDOUT_FILENO, "SIGSEGV\n", sizeof("SIGSEGV\n"));
+        close(fd);
         _exit(1);
         break;
     }

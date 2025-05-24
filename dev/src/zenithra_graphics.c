@@ -49,6 +49,7 @@ struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool 
 	long long triangles = 0;
 
 	struct ObjectData *obj = (void*)malloc(sizeof(struct ObjectData));
+	obj->bounded_vertex_buffer_data = NULL;
 
 	fp = fopen(object_file_name, "r");
 	if(!fp){
@@ -116,6 +117,13 @@ struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool 
 	}
 	fclose(fp);
 
+	obj->x_max = temp_vertex_buffer_data[0];
+	obj->x_average = temp_vertex_buffer_data[0];
+	obj->y_max = temp_vertex_buffer_data[1];
+	obj->y_average = temp_vertex_buffer_data[1];
+	obj->z_max = temp_vertex_buffer_data[2];
+	obj->z_average = temp_vertex_buffer_data[2];
+	int n = 0;
 	for(int i = 0; i < obj->obj_size * 3; i+=3){
 		int vi = face_buffer_data[i] - 1;
 		int ti = face_buffer_data[i+1] - 1;
@@ -125,6 +133,23 @@ struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool 
 		obj->vertex_buffer_data[i+1] = temp_vertex_buffer_data[vi*3+1];
 		obj->vertex_buffer_data[i+2] = temp_vertex_buffer_data[vi*3+2];
 
+		if(temp_vertex_buffer_data[i] > obj->x_max){
+			obj->x_max = temp_vertex_buffer_data[i];
+		}
+		if(temp_vertex_buffer_data[i+1] > obj->y_max){
+			obj->y_max = temp_vertex_buffer_data[i+1];
+		}
+		if(temp_vertex_buffer_data[i+2] > obj->z_max){
+			obj->z_max = temp_vertex_buffer_data[i+2];
+		}
+
+		if(i >= 3){
+			obj->x_average += temp_vertex_buffer_data[i];
+			obj->y_average += temp_vertex_buffer_data[i+1];
+			obj->z_average += temp_vertex_buffer_data[i+2];
+		}
+		n++;
+
 		normals_buffer_data[i] = temp_normals_buffer_data[ni*3];
 		normals_buffer_data[i+1] = temp_normals_buffer_data[ni*3+1];
 		normals_buffer_data[i+2] = temp_normals_buffer_data[ni*3+2];
@@ -133,6 +158,9 @@ struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool 
 		uvs_buffer_data[uv_i] = temp_uvs_buffer_data[ti*2];
 		uvs_buffer_data[uv_i+1] = temp_uvs_buffer_data[ti*2+1];
 	}
+	obj->x_average /= n;
+	obj->y_average /= n;
+	obj->z_average /= n;
 
 	glGenBuffers(1, &obj->obj_vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, obj->obj_vertex_buffer);
@@ -312,4 +340,51 @@ void zenithra_render_object(struct InEngineData *engine_data_str, struct ObjectD
 	glDisableVertexAttribArray(2);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void zenithra_bind_objects(struct ObjectData **obj, int objects_to_be_bound[255], int target_object){
+	for(int i = 0; objects_to_be_bound[i] != -1; i+=2){
+		obj[objects_to_be_bound[i]]->bounded_vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * obj[objects_to_be_bound[i]]->obj_size * 3);
+	}
+
+	for(int i = 0; objects_to_be_bound[i] != -1; i+=2){
+		for(int j = 0; j < (obj[objects_to_be_bound[i]]->obj_size * 3) - 1; j++){
+			obj[objects_to_be_bound[i]]->bounded_vertex_buffer_data[j] = obj[objects_to_be_bound[i]]->vertex_buffer_data[j];
+		}
+	}
+
+	for(int i = 0; objects_to_be_bound[i] != -1; i+=2){
+		for(int j = 0; j < (obj[objects_to_be_bound[i]]->obj_size * 3) - 1; j+=3){
+			if(i + 1 == 0){
+				obj[objects_to_be_bound[i]]->bounded_vertex_buffer_data[j] += obj[target_object]->x_max;
+				obj[objects_to_be_bound[i]]->bounded_vertex_buffer_data[j+1] += obj[target_object]->y_average;
+				obj[objects_to_be_bound[i]]->bounded_vertex_buffer_data[j+2] += obj[target_object]->z_average;
+			}
+			if(i + 1 == 1){
+				obj[objects_to_be_bound[i]]->bounded_vertex_buffer_data[j] += obj[target_object]->x_average;
+				obj[objects_to_be_bound[i]]->bounded_vertex_buffer_data[j+1] += obj[target_object]->y_max;
+				obj[objects_to_be_bound[i]]->bounded_vertex_buffer_data[j+2] += obj[target_object]->z_average;
+			}
+			if(i + 1 == 2){
+				obj[objects_to_be_bound[i]]->bounded_vertex_buffer_data[j] += obj[target_object]->x_average;
+				obj[objects_to_be_bound[i]]->bounded_vertex_buffer_data[j+1] += obj[target_object]->y_average;
+				obj[objects_to_be_bound[i]]->bounded_vertex_buffer_data[j+2] += obj[target_object]->z_max;
+			}
+		}
+	}
+
+	for(int i = 0; objects_to_be_bound[i] != -1; i+=2){
+		glBindBuffer(GL_ARRAY_BUFFER, obj[objects_to_be_bound[i]]->obj_vertex_buffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj[objects_to_be_bound[i]]->obj_size * 3, &obj[objects_to_be_bound[i]]->bounded_vertex_buffer_data[0], GL_STATIC_DRAW);
+	}
+}
+
+void zenithra_unbind_objects(struct ObjectData *obj){
+	for(int i = 0; i < (obj->obj_size * 3) - 1; i++){
+		obj->bounded_vertex_buffer_data[i] = 0.0f;
+	}
+
+	zenithra_free((void**)&obj->bounded_vertex_buffer_data);
+	glBindBuffer(GL_ARRAY_BUFFER, obj->obj_vertex_buffer);
+	glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * obj->obj_size * 3), &obj->vertex_buffer_data[0], GL_STATIC_DRAW);
 }

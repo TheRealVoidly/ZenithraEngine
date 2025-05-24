@@ -126,6 +126,8 @@ struct ObjectData{
     GLfloat *vertex_buffer_data;
     GLfloat *bounded_vertex_buffer_data;
 
+    GLfloat x_max, x_average, y_max, y_average, z_max, z_average;
+
     bool engine_obj;
 };
 
