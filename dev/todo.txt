@@ -2,8 +2,6 @@
 TODO
 -------------------------------------------------------
 
--- Fix object detection not working for large objects in far edges
-
 -- Make objects scaleable
 
 -- Write comments
@@ -12,6 +10,5 @@ TODO
     !-- Detect hover over object and load in direction arrows
     	-- Make the arrows interactable with LMB and move the object
         -- Make the arrows visible when hovering over them after hovering over an object
-        -- Attach the arrows to the edges of the object temporarily, deattach and hide when not hovering over the object
 
 -- Create normal movement with collisions and gravity, and fly mode.. Maybe game's task ?

@@ -18,8 +18,10 @@ void zenithra_log_err(const char* file_name, int line, const char* error_message
     write(fd, t_buffer, strlen(t_buffer));
     free(t_buffer);
     write(fd, file_name, strlen(file_name));
+    write(fd, " ", strlen(" "));
     char buffer[255];
     sprintf(buffer, "%d", line);
+    write(fd, " ", strlen(" "));
     write(fd, buffer, strlen(buffer));
     write(fd, error_message, strlen(error_message));
     write(fd, "\n", strlen("\n"));

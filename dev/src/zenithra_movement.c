@@ -11,7 +11,7 @@ void zenithra_init_movement_vals(struct InEngineData *engine_data_str){
 }
 
 void zenithra_calc_mouse_movement(struct InEngineData *engine_data_str){
-	int old_x_pos = engine_data_str->MOVE->x_pos, old_y_pos = engine_data_str->MOVE->y_pos;
+	//int old_x_pos = engine_data_str->MOVE->x_pos, old_y_pos = engine_data_str->MOVE->y_pos;
 	SDL_GetMouseState(&engine_data_str->MOVE->x_pos, &engine_data_str->MOVE->y_pos);
 	SDL_WarpMouseInWindow(engine_data_str->SDL->window, engine_data_str->window_x / 2, engine_data_str->window_y / 2);
 
@@ -24,20 +24,20 @@ void zenithra_calc_mouse_movement(struct InEngineData *engine_data_str){
 		engine_data_str->MOVE->vertical_angle = -1.4f;
 	}
 	
-	if(old_x_pos != engine_data_str->MOVE->x_pos || old_y_pos != engine_data_str->MOVE->y_pos){
-		float look_vector[3] = {
-			cos(engine_data_str->MOVE->vertical_angle) * sin(engine_data_str->MOVE->horizontal_angle),
-			sin(engine_data_str->MOVE->vertical_angle),
-			cos(engine_data_str->MOVE->vertical_angle) * cos(engine_data_str->MOVE->horizontal_angle)
-		};
-		glm_vec3_make(look_vector, engine_data_str->MOVE->direction_look);
+	//if(old_x_pos != engine_data_str->MOVE->x_pos || old_y_pos != engine_data_str->MOVE->y_pos){
+	float look_vector[3] = {
+		cos(engine_data_str->MOVE->vertical_angle) * sin(engine_data_str->MOVE->horizontal_angle),
+		sin(engine_data_str->MOVE->vertical_angle),
+		cos(engine_data_str->MOVE->vertical_angle) * cos(engine_data_str->MOVE->horizontal_angle)
+	};
+	glm_vec3_make(look_vector, engine_data_str->MOVE->direction_look);
 
-		mat4 view;
-		vec3 position_direction;
-		glm_vec3_add(engine_data_str->MOVE->direction_look, engine_data_str->MOVE->position, position_direction);
-		vec3 up = {0.0f, 1.0f, 0.0f};
-		glm_lookat(engine_data_str->MOVE->position, position_direction, up, view);
-	}
+	mat4 view;
+	vec3 position_direction;
+	glm_vec3_add(engine_data_str->MOVE->direction_look, engine_data_str->MOVE->position, position_direction);
+	vec3 up = {0.0f, 1.0f, 0.0f};
+	glm_lookat(engine_data_str->MOVE->position, position_direction, up, view);
+	//}
 }
 
 void zenithra_update_position(struct InEngineData *engine_data_str){
