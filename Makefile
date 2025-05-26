@@ -1,56 +1,40 @@
-#Linux:
+# Compiler settings
+CC_LINUX = gcc
+CC_WIN = x86_64-w64-mingw32-gcc
 
-make: dev/src/zenithra_main.o dev/src/zenithra_core.o dev/src/zenithra_debug.o dev/src/zenithra_movement.o dev/src/zenithra_events.o dev/src/zenithra_graphics.o dev/src/zenithra_editor.o
-	gcc dev/src/zenithra_main.o dev/src/zenithra_core.o dev/src/zenithra_debug.o dev/src/zenithra_movement.o dev/src/zenithra_events.o dev/src/zenithra_graphics.o dev/src/zenithra_editor.o -g -o main -rdynamic `sdl2-config --cflags --libs` -lm -lGLU -lGLEW -lOpenGL
+CFLAGS_LINUX = -g
+CFLAGS_WIN = -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32 -g -Wall
 
-zenithra_core.o: dev/src/zenithra_core.c dev/src/zenithra_debug.h
-	gcc -c dev/src/zenithra_core.c -o dev/src/zenithra_core.o
+SDL_FLAGS_LINUX = $(shell sdl2-config --cflags --libs)
+SDL_FLAGS_WIN = $(shell /usr/x86_64-w64-mingw32/bin/sdl2-config --cflags --libs)
 
-zenithra_main.o: dev/src/zenithra_main.c dev/src/zenithra_debug.h dev/src/zenithra_core.h
-	gcc -c dev/src/zenithra_main.c -o dev/src/zenithra_main.o
+LDFLAGS_LINUX = -rdynamic $(SDL_FLAGS_LINUX) -lm -lGLU -lGLEW -lOpenGL
+LDFLAGS_WIN = -lmingw32 $(SDL_FLAGS_WIN) -lmsvcrt -lglew32 -lopengl32 -lglu32
 
-zenithra_editor.o: dev/src/zenithra_editor.c dev/src/zenithra_core.h
-	gcc -c dev/src/zenithra_editor.c -o dev/src/zenithra_editor.o
+# Source files
+SRC = zenithra_main zenithra_core zenithra_debug zenithra_movement zenithra_events zenithra_graphics zenithra_editor
 
-zenithra_debug.o: dev/src/zenithra_debug.c dev/src/zenithra_debug.h
-	gcc -c dev/src/zenithra_debug.c -o dev/src/zenithra_debug.o
+SRC_DIR = dev/src
+OBJ_LINUX = $(addprefix $(SRC_DIR)/, $(addsuffix .o, $(SRC)))
+OBJ_WIN = $(addprefix $(SRC_DIR)/, $(addsuffix _windows.o, $(SRC)))
 
-zenithra_movement.o: dev/src/zenithra_movement.c dev/src/zenithra_core.h
-	gcc -c dev/src/zenithra_movement.c -o dev/src/zenithra_movement.o
+# Default target (Linux)
+all: main
 
-zenithra_events.o: dev/src/zenithra_events.c dev/src/zenithra_core.h
-	gcc -c dev/src/zenithra_events.c -o dev/src/zenithra_events.o
+main: $(OBJ_LINUX)
+	$(CC_LINUX) $(OBJ_LINUX) $(CFLAGS_LINUX) -o main $(LDFLAGS_LINUX)
 
-zenithra_graphics.o: dev/src/zenithra_graphics.c dev/src/zenithra_core.h dev/src/vertex_shader.h dev/src/fragment_shader.h
-	gcc -c dev/src/zenithra_graphics.c -o dev/src/zenithra_graphics.o
+# Windows target
+windows: $(OBJ_WIN)
+	$(CC_WIN) $(CFLAGS_WIN) $(OBJ_WIN) -o main.exe $(LDFLAGS_WIN)
 
-#Windows:
+# Pattern rules
+$(SRC_DIR)/%.o: $(SRC_DIR)/%.c $(SRC_DIR)/zenithra_core.h $(SRC_DIR)/zenithra_debug.h $(SRC_DIR)/vertex_shader.h $(SRC_DIR)/fragment_shader.h
+	$(CC_LINUX) -c $< -o $@
 
-windows: dev/src/zenithra_core_windows.o dev/src/zenithra_main_windows.o dev/src/zenithra_debug_windows.o dev/src/zenithra_movement_windows.o dev/src/zenithra_events_windows.o dev/src/zenithra_graphics_windows.o dev/src/zenithra_editor_windows.o
-	x86_64-w64-mingw32-gcc -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32 dev/src/zenithra_main_windows.o dev/src/zenithra_core_windows.o dev/src/zenithra_debug_windows.o dev/src/zenithra_movement_windows.o dev/src/zenithra_events_windows.o dev/src/zenithra_graphics_windows.o dev/src/zenithra_editor_windows.o -g -o main.exe -Wall -lmingw32 `/usr/x86_64-w64-mingw32/bin/sdl2-config --cflags --libs` -lmsvcrt -lglew32 -lopengl32 -lglu32
+$(SRC_DIR)/%_windows.o: $(SRC_DIR)/%.c $(SRC_DIR)/zenithra_core.h $(SRC_DIR)/zenithra_debug.h $(SRC_DIR)/vertex_shader.h $(SRC_DIR)/fragment_shader.h
+	$(CC_WIN) $(CFLAGS_WIN) -c $< -o $@
 
-dev/src/zenithra_editor_windows.o: dev/src/zenithra_editor.c dev/src/zenithra_core.h
-	x86_64-w64-mingw32-gcc -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32 -c dev/src/zenithra_editor.c -o dev/src/zenithra_editor_windows.o
-
-dev/src/zenithra_core_windows.o: dev/src/zenithra_core.c dev/src/zenithra_debug.h
-	x86_64-w64-mingw32-gcc -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32 -c dev/src/zenithra_core.c -o dev/src/zenithra_core_windows.o
-
-dev/src/zenithra_main_windows.o: dev/src/zenithra_main.c dev/src/zenithra_debug.h dev/src/zenithra_core.h
-	x86_64-w64-mingw32-gcc -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32 -c dev/src/zenithra_main.c -o dev/src/zenithra_main_windows.o
-
-dev/src/zenithra_debug_windows.o: dev/src/zenithra_debug.c dev/src/zenithra_debug.h
-	x86_64-w64-mingw32-gcc -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32 -c dev/src/zenithra_debug.c -o dev/src/zenithra_debug_windows.o
-
-dev/src/zenithra_movement_windows.o: dev/src/zenithra_movement.c dev/src/zenithra_core.h
-	x86_64-w64-mingw32-gcc -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32 -c dev/src/zenithra_movement.c -o dev/src/zenithra_movement_windows.o
-
-dev/src/zenithra_events_windows.o: dev/src/zenithra_events.c dev/src/zenithra_core.h
-	x86_64-w64-mingw32-gcc -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32 -c dev/src/zenithra_events.c -o dev/src/zenithra_events_windows.o
-
-dev/src/zenithra_graphics_windows.o: dev/src/zenithra_graphics.c dev/src/zenithra_core.h dev/src/vertex_shader.h dev/src/fragment_shader.h
-	x86_64-w64-mingw32-gcc -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32 -c dev/src/zenithra_graphics.c -o dev/src/zenithra_graphics_windows.o
-
-#Clear:
-
-clear:
-	rm dev/src/*.o main main.exe
+# Clean
+clean:
+	rm -f $(OBJ_LINUX) $(OBJ_WIN) main main.exe

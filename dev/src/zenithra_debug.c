@@ -38,26 +38,3 @@ char* zenithra_get_time(){
     sprintf(buffer, "%02d:%02d:%02d: ", time_info->tm_hour, time_info->tm_min, time_info->tm_sec);
     return buffer;
 }
-
-void zenithra_log_init(){
-    int fd = open("./dev/zenithra_log.txt", O_TRUNC | O_WRONLY | O_CREAT, 0644);
-    char *t_buffer = zenithra_get_time();
-    write(fd, t_buffer, strlen(t_buffer));
-    free(t_buffer);
-    write(fd, "Zenithra engine started", strlen("Zenithra engine started"));
-    write(fd, "\n", strlen("\n"));
-    close(fd);
-}
-
-void zenithra_log_close(bool successfull){
-    int fd = open("./dev/zenithra_log.txt", O_APPEND | O_WRONLY | O_CREAT, 0644);
-    char *t_buffer = zenithra_get_time();
-    write(fd, t_buffer, strlen(t_buffer));
-    free(t_buffer);
-    if(successfull == true){
-        write(fd, "Zenithra exited successfully", strlen("Zenithra exited successfully"));
-    }else{
-        write(fd, "Zenithra exited unexpectedly", strlen("Zenithra exited unexpectedly"));
-    }
-    close(fd);
-}

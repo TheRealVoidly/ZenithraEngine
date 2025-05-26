@@ -2,9 +2,15 @@
 TODO
 -------------------------------------------------------
 
+-- Add memory usage counter
+
 -- Make objects scaleable
 
--- Write comments
+-- Make it possible for objects to be loaded with preexisting textures
+
+-- Create an interpretor
+    -- Own scripting lang
+        -- Write documentation for it
 
 -- Create an editor
     !-- Detect hover over object and load in direction arrows

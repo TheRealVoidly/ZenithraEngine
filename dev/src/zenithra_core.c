@@ -1,6 +1,22 @@
 #include"zenithra_core.h"
 #include<signal.h>
 
+/**
+ * Initializes the engine.
+ * Shall be called only once at startup
+ *
+ * Allocates all in-engine structures (SDL, OpenGL, movement, keys) and sets basic initial values.
+ * Also sets up signal handlers, logging, and developer console (if enabled).
+ *
+ * @param x = The desired window width.
+ * @param y = The desired window height.
+ * @return A pointer to the fully-initialized InEngineData structure.
+ * 
+ * Counter part is zenithra_destroy which frees everything and stops the engine
+ *
+ * @note If initialization fails at any point, zenithra_critical_error_occured is called, and the program will terminate.
+**/
+
 struct InEngineData* zenithra_init(int x, int y){
     signal(SIGSEGV, zenithra_signal_catch);
     
@@ -10,17 +26,17 @@ struct InEngineData* zenithra_init(int x, int y){
     engine_data_str->MOVE = (struct MovementEngineData*)malloc(sizeof(*engine_data_str->MOVE));
     engine_data_str->KEYS = (struct KeysEngineData*)malloc(sizeof(*engine_data_str->KEYS));
 
-    engine_data_str->obj_num = 0;
-    engine_data_str->SDL->focus_lost = false;
+    engine_data_str->obj_num = 0; //Number of loaded objects is 0 at initialization
+    engine_data_str->focus_lost = false; // Window starts in focus
 
-    zenithra_log_init();
+    zenithra_log_msg("Zenithra engine started");
     zenithra_init_movement_vals(engine_data_str);
     zenithra_init_keys(engine_data_str);
 
     engine_data_str->window_x = x;
     engine_data_str->window_y = y;
 
-    DEV_CONSOLE_CREATE;
+    DEV_CONSOLE_CREATE; // Creates developer console if DEV_MODE is defined. Only on Windows
 
     if(!zenithra_initialize_sdl(engine_data_str)){
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "Failed to initialize SDL");
@@ -85,6 +101,15 @@ bool zenithra_initialize_sdl(struct InEngineData *engine_data_str){
     return true;
 }
 
+/**
+ * Ends the engine
+ * Shall be called only at the end of program as this terminates the process
+ * 
+ * Frees and destroys everything allocated
+ * 
+ * @param engine_data_str = Needed to be passed to the function to free allocated in-engine struct
+**/
+
 void zenithra_destroy(struct InEngineData *engine_data_str){
     glDeleteProgram(engine_data_str->GL->program_id);
     glDeleteVertexArrays(1, &engine_data_str->GL->vertex_array_id);
@@ -97,9 +122,19 @@ void zenithra_destroy(struct InEngineData *engine_data_str){
     zenithra_free((void*)&engine_data_str);
 
     SDL_Quit();
-    zenithra_log_close(true);
+    zenithra_log_msg("Zenithra exited successfully");
     exit(1);
 }
+
+/**
+ * If a critical error occures this function should be called
+ * It is the safe way to terminate the program even after a critical error
+ * 
+ * @param engnine_data_str
+ * @param file_name = Name of the file where the critical error occured
+ * @param line = Line where the critical error occured
+ * @param error = Error message
+**/
 
 void zenithra_critical_error_occured(struct InEngineData *engine_data_str, char* file_name, int line, const char* error){
     fprintf(stdout, "%s\n", error);
@@ -127,6 +162,13 @@ bool zenithra_initialize_opengl(struct InEngineData *engine_data_str){
     return true;
 }
 
+/**
+ * Safe way to free stuff
+ * Frees and sets pointer to NULL
+ * 
+ * @param pp = double pointer of the thing to be freed
+**/
+
 void zenithra_free(void **pp){
     if(!*pp){
         zenithra_log_msg("Attempt to free null pointer");
@@ -139,6 +181,11 @@ void zenithra_free(void **pp){
     *pp = NULL;
     p = NULL;
 }
+
+/**
+ * Signal catche functions
+ * @param n = signal
+**/
 
 #ifdef _WIN32
 void zenithra_signal_catch(int n){
@@ -189,6 +236,11 @@ void zenithra_init_keys(struct InEngineData *engine_data_str){
     engine_data_str->KEYS->escape = false;
     engine_data_str->KEYS->r_shift = false;
 }
+
+/**
+ * Function defined only for Linux
+ * Handles real-time console input
+**/
 
 #ifndef _WIN32
 int _kbhit(){

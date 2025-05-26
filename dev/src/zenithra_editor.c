@@ -1,6 +1,15 @@
 #include"zenithra_core.h"
 #include"zenithra_debug.h"
 
+/**
+ * Function used for object detection
+ * 
+ * @param origin = position of camera
+ * @param obj = pointer to array of objects
+ * @param engine_data_str
+ * @return int array of size 2, index 0 stores whether an object has been hit by a ray, index 1 stores the index of an object that has been hit
+**/
+
 int* zenithra_object_ray_intersects_detection(float origin[3], struct ObjectData **obj, struct InEngineData *engine_data_str){
     int *n;
     float dir[3], edge1[3], edge2[3], h[3], s[3], q[3];

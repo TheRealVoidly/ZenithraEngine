@@ -64,7 +64,7 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
         }
 
         Uint32 mouse_button_pressed = SDL_GetMouseState(NULL, NULL);
-        if(!engine_data_str->SDL->focus_lost){
+        if(!engine_data_str->focus_lost){
             zenithra_calc_mouse_movement(engine_data_str);
 
             if(SDL_BUTTON(3) == mouse_button_pressed){

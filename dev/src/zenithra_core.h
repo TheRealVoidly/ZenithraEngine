@@ -21,7 +21,7 @@
 #include<cglm/cglm.h>
 #include"zenithra_debug.h"
 
-#define DEV_MODE
+#define DEV_MODE //Define if creating a console (on Windows) is desired
 
 #ifdef _WIN32
     #ifdef DEV_MODE
@@ -40,7 +40,6 @@
 typedef struct SDLEngineData{
     SDL_Window *window;
     SDL_Renderer *renderer;
-    bool focus_lost;
 }SDL;
 
 typedef struct GLEngineData{
@@ -54,12 +53,14 @@ typedef struct MovementEngineData{
     vec3 direction_look;
     vec3 direction_strafe;
     vec3 direction_vertical;
+
     float horizontal_angle;
     float vertical_angle;
     float fov;
     float speed;
     float mouse_speed;
     float gravity;
+
     int x_pos, y_pos;
 }MOVE;
 
@@ -75,13 +76,16 @@ struct InEngineData{
     KEYS *KEYS;
 
     float delta_time;
+
     int window_x;
     int window_y;
+
+    bool focus_lost;
 
     int obj_num;
 };
 
-#ifndef WIN32
+#ifndef WIN32 //If not on Windows define a function for reading from console input. If on windows such fuction is provided from a header
 int _kbhit();
 #endif
 

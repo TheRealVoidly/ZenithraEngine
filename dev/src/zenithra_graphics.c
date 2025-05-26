@@ -132,13 +132,13 @@ struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool 
 		obj->vertex_buffer_data[i+1] = temp_vertex_buffer_data[vi*3+1];
 		obj->vertex_buffer_data[i+2] = temp_vertex_buffer_data[vi*3+2];
 
-		if(temp_vertex_buffer_data[i] > obj->x_max){
+		if(temp_vertex_buffer_data[vi*3] > obj->x_max){
 			obj->x_max = temp_vertex_buffer_data[vi*3];
 		}
-		if(temp_vertex_buffer_data[i+1] > obj->y_max){
+		if(temp_vertex_buffer_data[vi*3+1] > obj->y_max){
 			obj->y_max = temp_vertex_buffer_data[vi*3+1];
 		}
-		if(temp_vertex_buffer_data[i+2] > obj->z_max){
+		if(temp_vertex_buffer_data[vi*3+2] > obj->z_max){
 			obj->z_max = temp_vertex_buffer_data[vi*3+2];
 		}
 
@@ -216,7 +216,6 @@ GLuint zenithra_create_texture(const char* file_name){
 
 	unsigned int height = *(unsigned int*)&(header[8]);
 	unsigned int width = *(unsigned int*)&(header[12]);
-	unsigned int linear_size = *(unsigned int*)&(header[16]);
 	unsigned int mip_map_count = *(unsigned int*)&(header[24]);
 	unsigned int buf_size;
 
