@@ -43,6 +43,18 @@ GLuint zenithra_load_shaders(struct InEngineData *engine_data_str){
 	return program_id;
 }
 
+bool zenithra_alloc_new_obj(struct InEngineData *engine_data_str, struct ObjectData **obj){
+	struct ObjectData **temp = (struct ObjectData**)realloc(obj, sizeof(struct ObjectData) * (engine_data_str->obj_num));
+	if(temp != NULL){
+		obj = temp;
+		temp = NULL;
+		return true;
+	}else{
+		zenithra_log_err(__FILE__, __LINE__, "Object realloc failed! Object will not be loaded!\n");
+	}
+	return false;
+}
+
 struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool engine_obj, const char* object_file_name, const char* texture_file_name){
 	FILE *fp = NULL;
 	char buffer[255];
@@ -187,15 +199,26 @@ struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool 
 	return obj;
 }
 
-void zenithra_rebind_texture(struct ObjectData *obj, const char* file_name){
-	obj->obj_bound_texture = zenithra_create_texture(file_name);
+void zenithra_rebind_texture(struct ObjectData **obj, int obj_num, const char* file_name){
+	obj[obj_num]->obj_bound_texture = zenithra_create_texture(file_name);
 }
+
+/**
+ * Creates texture
+ * 
+ * @param file_name = Pass the string "NULL" for no texture
+ * @return a texture pointer
+**/
 
 GLuint zenithra_create_texture(const char* file_name){
 	char file_check[4];
 	unsigned char* data;
 	unsigned char header[124];
 	FILE *fp = NULL;
+
+	if(strcmp(file_name, "NULL") == 0){
+		return 0;
+	}
 
 	fp = fopen(file_name, "rb");
 	if(!fp){

@@ -8,10 +8,6 @@ TODO
 
 -- Make it possible for objects to be loaded with preexisting textures
 
--- Create an interpretor
-    -- Own scripting lang
-        -- Write documentation for it
-
 -- Create an editor
     !-- Detect hover over object and load in direction arrows
     	-- Make the arrows interactable with LMB and move the object

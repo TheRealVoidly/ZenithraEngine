@@ -21,7 +21,7 @@
 #include<cglm/cglm.h>
 #include"zenithra_debug.h"
 
-#define DEV_MODE //Define if creating a console (on Windows) is desired
+#define DEV_MODE // Define if creating a console (on Windows) is desired
 
 #ifdef _WIN32
     #ifdef DEV_MODE
@@ -34,7 +34,7 @@
 #endif
 
 //-----------------------------------------------
-//Core
+// Core
 //-----------------------------------------------
 
 typedef struct SDLEngineData{
@@ -69,23 +69,37 @@ typedef struct KeysEngineData{
     bool r_shift;
 }KEYS;
 
+struct InterpreterVariable{
+    int i_value;
+    float f_value;
+};
+
+typedef struct ReadData{
+    char *command;
+    int fval;
+    int offset;
+
+    struct InterpreterVariable *iv[1024];
+}INTERPRETER;
+
 struct InEngineData{
     MOVE *MOVE;
     SDL *SDL;
     GL *GL;
     KEYS *KEYS;
+    INTERPRETER *INTERPRETER;
 
     float delta_time;
 
     int window_x;
     int window_y;
 
-    bool focus_lost;
-
     int obj_num;
+
+    bool focus_lost;
 };
 
-#ifndef WIN32 //If not on Windows define a function for reading from console input. If on windows such fuction is provided from a header
+#ifndef WIN32 // If not on Windows define a function for reading from console input. If on windows such fuction is provided from a header
 int _kbhit();
 #endif
 
@@ -99,9 +113,10 @@ void zenithra_critical_error_occured(struct InEngineData *engine_data_str, char*
 bool zenithra_initialize_opengl(struct InEngineData *engine_data_str);
 bool zenithra_initialize_sdl(struct InEngineData *engine_data_str);
 void zenithra_init_keys(struct InEngineData *engine_data_str);
+uint64_t zenithra_8_byte_to_int(char *str);
 
 //-----------------------------------------------
-//Movement
+// Movement
 //-----------------------------------------------
 
 void zenithra_init_movement_vals(struct InEngineData *engine_data_str);
@@ -109,13 +124,13 @@ void zenithra_calc_mouse_movement(struct InEngineData *engine_data_str);
 void zenithra_update_position(struct InEngineData *engine_data_str);
 
 //-----------------------------------------------
-//Events
+// Events
 //-----------------------------------------------
 
 bool zenithra_handle_event_poll(struct InEngineData *engine_data_str);
 
 //-----------------------------------------------
-//Graphics
+// Graphics
 //-----------------------------------------------
 
 struct ObjectData{
@@ -139,12 +154,25 @@ GLuint zenithra_load_shaders(struct InEngineData *engine_data_str);
 GLuint zenithra_create_texture(const char* file_name);
 struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool engine_obj, const char* object_file_name, const char* texture_file_name);
 void zenithra_render_object(struct InEngineData *engine_data_str, struct ObjectData **obj, int obj_num);
-void zenithra_rebind_texture(struct ObjectData *obj, const char* file_name);
+void zenithra_rebind_texture(struct ObjectData **obj, int obj_num, const char* file_name);
 void zenithra_bind_objects(struct ObjectData **obj, int objects_to_be_bound[255], int target_object);
 void zenithra_unbind_objects(struct ObjectData *obj);
+bool zenithra_alloc_new_obj(struct InEngineData *engine_data_str, struct ObjectData **obj);
 
 //-----------------------------------------------
-//Editor
+// Editor
 //-----------------------------------------------
 
 int* zenithra_object_ray_intersects_detection(float origin[3], struct ObjectData **obj, struct InEngineData *engine_data_str);
+struct ObjectData** zenithra_editor_init(struct InEngineData *engine_data_str);
+void zenithra_move_object(struct InEngineData *engine_data_str, struct ObjectData **obj, int obj_num, char vector, GLfloat value);
+
+//-----------------------------------------------
+// Interpreter
+//-----------------------------------------------
+
+void zenithra_interpreter_begin(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
+void zenithra_register_callback();
+void zenithra_interpreter_loop(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
+void zenithra_read_command(struct InEngineData *engine_data_str, char *file_name);
+void zenithra_interpreter_check_commands(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);

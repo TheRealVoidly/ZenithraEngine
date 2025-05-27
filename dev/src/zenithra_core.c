@@ -19,14 +19,16 @@
 
 struct InEngineData* zenithra_init(int x, int y){
     signal(SIGSEGV, zenithra_signal_catch);
+    zenithra_log_init();
     
     struct InEngineData *engine_data_str = (struct InEngineData*)malloc(sizeof(*engine_data_str));
     engine_data_str->SDL = (struct SDLEngineData*)malloc(sizeof(*engine_data_str->SDL));
     engine_data_str->GL = (struct GLEngineData*)malloc(sizeof(*engine_data_str->GL));
     engine_data_str->MOVE = (struct MovementEngineData*)malloc(sizeof(*engine_data_str->MOVE));
     engine_data_str->KEYS = (struct KeysEngineData*)malloc(sizeof(*engine_data_str->KEYS));
+    engine_data_str->INTERPRETER = (struct ReadData*)malloc(sizeof(*engine_data_str->INTERPRETER));
 
-    engine_data_str->obj_num = 0; //Number of loaded objects is 0 at initialization
+    engine_data_str->obj_num = 0; // Number of loaded objects is 0 at initialization
     engine_data_str->focus_lost = false; // Window starts in focus
 
     zenithra_log_msg("Zenithra engine started");
@@ -116,10 +118,12 @@ void zenithra_destroy(struct InEngineData *engine_data_str){
     SDL_DestroyRenderer(engine_data_str->SDL->renderer);
     SDL_DestroyWindow(engine_data_str->SDL->window);
 
-    zenithra_free((void*)&engine_data_str->MOVE);
-    zenithra_free((void*)&engine_data_str->SDL);
-    zenithra_free((void*)&engine_data_str->GL);
-    zenithra_free((void*)&engine_data_str);
+    zenithra_free((void**)&engine_data_str->MOVE);
+    zenithra_free((void**)&engine_data_str->SDL);
+    zenithra_free((void**)&engine_data_str->GL);
+    zenithra_free((void**)&engine_data_str->INTERPRETER);
+    zenithra_free((void**)&engine_data_str->KEYS);
+    zenithra_free((void**)&engine_data_str);
 
     SDL_Quit();
     zenithra_log_msg("Zenithra exited successfully");
@@ -247,7 +251,18 @@ int _kbhit(){
     struct timeval tv = {0L, 0L};
     fd_set fds;
     FD_ZERO(&fds);
-    FD_SET(0, &fds); // file descriptor 0 = stdin
+    FD_SET(0, &fds); // File descriptor 0 = stdin
     return select(1, &fds, NULL, NULL, &tv);
 }
 #endif
+
+uint64_t zenithra_8_byte_to_int(char *str){
+    int i = 0;
+    uint64_t value = 0;
+    while(str[i]){
+        value = (value << 8) | (unsigned char)str[i];
+        i++;
+    }
+    value = value % 1024;
+    return value;
+}

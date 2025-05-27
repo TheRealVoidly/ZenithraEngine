@@ -82,3 +82,68 @@ int* zenithra_object_ray_intersects_detection(float origin[3], struct ObjectData
     }
     return n;
 }
+
+/**
+ * Initializes the editor
+ * 
+ * @param engine_data_str
+ * @return object structure pointer
+**/
+
+struct ObjectData** zenithra_editor_init(struct InEngineData *engine_data_str){
+    struct ObjectData **obj;
+    obj = (struct ObjectData**)malloc(3 * sizeof(struct ObjectData));
+
+    obj[0] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowx.obj", "./enginedata/colors/red.DDS");
+    obj[1] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowy.obj", "./enginedata/colors/green.DDS");
+    obj[2] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowz.obj", "./enginedata/colors/blue.DDS");
+
+    return obj;
+}
+
+/**
+ * Function for moving objects around
+ * 
+ * @param engine_data_str
+ * @param obj
+ * @param obj_num
+ * @param vector x/y/z
+ * @param value
+**/
+
+void zenithra_move_object(struct InEngineData *engine_data_str, struct ObjectData **obj, int obj_num, char vector, GLfloat value){
+    int i;
+
+    switch(vector){
+    case 'x':
+        for(i = 0; i <= (obj[obj_num]->obj_size * 9) - 3; i=i+3){
+            obj[obj_num]->vertex_buffer_data[i] += value;
+        }
+        obj[obj_num]->x_average += value;
+        obj[obj_num]->x_max += value;
+
+        break;
+    case 'y':
+        for(i = 0; i <= (obj[obj_num]->obj_size * 9) - 3; i=i+3){
+            obj[obj_num]->vertex_buffer_data[i+1] += value;
+        }
+        obj[obj_num]->y_average += value;
+        obj[obj_num]->y_max += value;
+
+        break;
+    case 'z':
+        for(i = 0; i <= (obj[obj_num]->obj_size * 9) - 3; i=i+3){
+            obj[obj_num]->vertex_buffer_data[i+2] += value;
+        }
+        obj[obj_num]->z_average += value;
+        obj[obj_num]->z_max += value;
+
+        break;
+    default:
+        zenithra_log_msg("Not a valid vector was specified when trying to move an object");
+        break;
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, obj[obj_num]->obj_vertex_buffer);
+    glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * obj[obj_num]->obj_size * 9), &obj[obj_num]->vertex_buffer_data[0], GL_STATIC_DRAW);
+}

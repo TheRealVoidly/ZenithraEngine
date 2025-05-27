@@ -21,8 +21,8 @@ void zenithra_log_err(const char* file_name, int line, const char* error_message
     write(fd, " ", strlen(" "));
     char buffer[255];
     sprintf(buffer, "%d", line);
-    write(fd, " ", strlen(" "));
     write(fd, buffer, strlen(buffer));
+    write(fd, " ", strlen(" "));
     write(fd, error_message, strlen(error_message));
     write(fd, "\n", strlen("\n"));
     close(fd);
@@ -37,4 +37,9 @@ char* zenithra_get_time(){
     time_info = localtime(&rawtime);
     sprintf(buffer, "%02d:%02d:%02d: ", time_info->tm_hour, time_info->tm_min, time_info->tm_sec);
     return buffer;
+}
+
+void zenithra_log_init(){
+    int fd = open("./dev/zenithra_log.txt", O_TRUNC | O_WRONLY | O_CREAT, 0644);
+    close(fd);
 }

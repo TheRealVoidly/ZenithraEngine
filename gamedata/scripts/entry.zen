@@ -1,0 +1,10 @@
+register_variable int test_var 0
+
+load_object ./gamedata/objects/plane.obj NULL -> test_var
+bind_texture_to_object test_var ./gamedata/textures/gravel.DDS
+
+move_object test_var x -20.0f
+
+{
+call_script ./gamedata/scripts/test.zen
+}
