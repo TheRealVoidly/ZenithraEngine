@@ -11,6 +11,9 @@ call_script ./gamedata/scripts/script_name.zen
 
 # Interpretor reads line by line
 # A basic command will look like this
+# Commands need to be seperated by new lines
+# Commands need to strictly follow this convention
+# Every "part" of a command needs to be seperated by a space
 test_command param1 param2 ...
 
 # Commands will be registered during startup
@@ -18,14 +21,13 @@ test_command param1 param2 ...
 register_command test_command param1 param2 ... -> variable
 
 # Variables will be registered like this
-# Max variable name is 8 characters
 register_variable int x
 
 # Supported data types are
 # int, float
 # Maybe more in the future
 
-# These are commands that execute only once on startup
+# These are commands that execute only once on startup because they are placed before '{'
 load_object ./gamedata/objects/plane.obj 0 -> obj_num
 bind_texture_to_object obj_num ./gamedata/textures/gravel.DDS
 
@@ -54,3 +56,5 @@ call_script script_path
 # List of wip commands
 register_command -- possibility of creating own commands in the future
 register_callback
+if else_if else
+variable_x = variable_x (-\+\/\* value/variable_x)

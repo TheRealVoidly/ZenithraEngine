@@ -1,7 +1,7 @@
 #include"zenithra_core.h"
 #include"zenithra_debug.h"
 
-void zenithra_register_callback(){
+void zenithra_register_callback(struct InEngineData *engine_data_str, char *callback_name, char *callback_request){
 
 }
 
@@ -10,14 +10,34 @@ void zenithra_register_callback(){
  * 
  * @param engine_data_str
  * @param obj
+**/
+
+void zenithra_interpreter_begin(struct InEngineData *engine_data_str, struct ObjectData **obj){
+	engine_data_str->INTERPRETER->command = (char*)malloc(sizeof(char) * 256);
+	memset(engine_data_str->INTERPRETER->command, 0, 256);
+	engine_data_str->INTERPRETER->offset = 0;
+
+	engine_data_str->INTERPRETER->iv = zenithra_interpreter_create_variable_node();
+	memset(engine_data_str->INTERPRETER->iv->variable_name, 0, 1024);
+
+	zenithra_read_command(engine_data_str, NULL);
+	while((strncmp(engine_data_str->INTERPRETER->command, "{", 1) != 0) && engine_data_str->INTERPRETER->fval != 0){		
+		zenithra_interpreter_check_commands(engine_data_str, obj, NULL);
+
+		zenithra_read_command(engine_data_str, NULL);
+	}
+	engine_data_str->INTERPRETER->offset = 0;
+}
+
+/**
+ * This function handles called scripts
+ * 
+ * @param engine_data_str
+ * @param obj
  * @param file_name = if NULL default to entry.zen
 **/
 
-void zenithra_interpreter_begin(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name){
-	if(!file_name){
-		engine_data_str->INTERPRETER->command = (char*)malloc(sizeof(char) * 256);
-		memset(engine_data_str->INTERPRETER->command, 0, 256);
-	}
+void zenithra_interpreter_run_through(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name){
 	engine_data_str->INTERPRETER->offset = 0;
 
 	zenithra_read_command(engine_data_str, file_name);
@@ -36,17 +56,17 @@ void zenithra_interpreter_begin(struct InEngineData *engine_data_str, struct Obj
  * @param obj
 **/
 
-void zenithra_interpreter_loop(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name){
-	zenithra_read_command(engine_data_str, file_name);
+void zenithra_interpreter_loop(struct InEngineData *engine_data_str, struct ObjectData **obj){
+	zenithra_read_command(engine_data_str, NULL);
 
 	while(strncmp(engine_data_str->INTERPRETER->command, "{", 1) != 0){
-		zenithra_read_command(engine_data_str, file_name);
+		zenithra_read_command(engine_data_str, NULL);
 	}
 
 	while(strncmp(engine_data_str->INTERPRETER->command, "}", 1) != 0){
-		zenithra_interpreter_check_commands(engine_data_str, obj, file_name);
+		zenithra_interpreter_check_commands(engine_data_str, obj, NULL);
 
-		zenithra_read_command(engine_data_str, file_name);
+		zenithra_read_command(engine_data_str, NULL);
 	}
 	engine_data_str->INTERPRETER->offset = 0;
 }
@@ -55,6 +75,7 @@ void zenithra_interpreter_loop(struct InEngineData *engine_data_str, struct Obje
  * This function retrieves commands word by word
  * 
  * @param engine_data_str
+ * @param file_name = If NULL default open entry.zen
 **/
 
 void zenithra_read_command(struct InEngineData *engine_data_str, char *file_name){
@@ -86,6 +107,7 @@ void zenithra_read_command(struct InEngineData *engine_data_str, char *file_name
  * 
  * @param engine_data_str
  * @param obj
+ * @param file_name = Name of script, NULL == entry.zen
 **/
 
 void zenithra_interpreter_check_commands(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name){
@@ -94,89 +116,26 @@ void zenithra_interpreter_check_commands(struct InEngineData *engine_data_str, s
 	}
 
 	if(strcmp(engine_data_str->INTERPRETER->command, "register_variable") == 0){
-		char type[256], name[256], value[256];
-
-		zenithra_read_command(engine_data_str, file_name);
-		strcpy(type, engine_data_str->INTERPRETER->command);
-
-		zenithra_read_command(engine_data_str, file_name);
-		strcpy(name, engine_data_str->INTERPRETER->command);
-
-		zenithra_read_command(engine_data_str, file_name);
-		strcpy(value, engine_data_str->INTERPRETER->command);
-
-		uint64_t variable_name = zenithra_8_byte_to_int(name);
-		engine_data_str->INTERPRETER->iv[variable_name] = (struct InterpreterVariable*)malloc(sizeof(struct InterpreterVariable));
-
-		if(strcmp(type, "int") == 0){
-			engine_data_str->INTERPRETER->iv[variable_name]->i_value = atoi(value);
-		}
-		if(strcmp(type, "float") == 0){
-			engine_data_str->INTERPRETER->iv[variable_name]->i_value = atof(value);
-		}
+		zenithra_interpreter_command_register_variable(engine_data_str, file_name);
 	}
 
 	if(strcmp(engine_data_str->INTERPRETER->command, "load_object") == 0){
-		char object_path[256], texture_path[256], temp[256], variable[256];
-
-		zenithra_read_command(engine_data_str, file_name);
-		strcpy(object_path, engine_data_str->INTERPRETER->command);
-
-		zenithra_read_command(engine_data_str, file_name);
-		strcpy(texture_path, engine_data_str->INTERPRETER->command);
-
-		if(zenithra_alloc_new_obj(engine_data_str, obj)){
-			obj[engine_data_str->obj_num] = zenithra_load_obj(engine_data_str, false, object_path, texture_path);
-
-			zenithra_read_command(engine_data_str, file_name);
-			strcpy(temp, engine_data_str->INTERPRETER->command);
-			if(strcmp(temp, "->") == 0){
-				zenithra_read_command(engine_data_str, file_name);
-				strcpy(variable, engine_data_str->INTERPRETER->command);
-
-				uint64_t variable_name = zenithra_8_byte_to_int(variable);
-				engine_data_str->INTERPRETER->iv[variable_name]->i_value = engine_data_str->obj_num - 1;
-			}
-		}
+		zenithra_interpreter_command_load_object(engine_data_str, obj, file_name);
 	}
 
 	if(strcmp(engine_data_str->INTERPRETER->command, "bind_texture_to_object") == 0){
-		char object_number[256], texture_path[256];
-
-		zenithra_read_command(engine_data_str, file_name);
-		strcpy(object_number, engine_data_str->INTERPRETER->command);
-
-		zenithra_read_command(engine_data_str, file_name);
-		strcpy(texture_path, engine_data_str->INTERPRETER->command);
-
-		uint64_t variable_name = zenithra_8_byte_to_int(object_number);
-		zenithra_rebind_texture(obj, engine_data_str->INTERPRETER->iv[variable_name]->i_value, texture_path);
+		zenithra_interpreter_command_bind_texture_to_object(engine_data_str, obj, file_name);
 	}
 
 	if(strcmp(engine_data_str->INTERPRETER->command, "move_object") == 0){
-		char object_number[256], vector[256], value[256];
-
-		zenithra_read_command(engine_data_str, file_name);
-		strcpy(object_number, engine_data_str->INTERPRETER->command);
-
-		zenithra_read_command(engine_data_str, file_name);
-		strcpy(vector, engine_data_str->INTERPRETER->command);
-
-		zenithra_read_command(engine_data_str, file_name);
-		strcpy(value, engine_data_str->INTERPRETER->command);
-
-		uint64_t variable_name = zenithra_8_byte_to_int(object_number);
-		zenithra_move_object(engine_data_str, obj, engine_data_str->INTERPRETER->iv[variable_name]->i_value, vector[0], atof(value));
+		zenithra_interpreter_command_move_object(engine_data_str, obj, file_name);
 	}
 
 	if(strcmp(engine_data_str->INTERPRETER->command, "call_script") == 0){
-		char script_path[256];
+		zenithra_interpreter_command_call_script(engine_data_str, obj, file_name);
+	}
 
-		zenithra_read_command(engine_data_str, file_name);
-		strcpy(script_path, engine_data_str->INTERPRETER->command);
-
-		int old_offset = engine_data_str->INTERPRETER->offset;
-		zenithra_interpreter_begin(engine_data_str, obj, script_path);
-		engine_data_str->INTERPRETER->offset = old_offset;
+	if(zenithra_interpreter_match_variable_name(engine_data_str, engine_data_str->INTERPRETER->command)){
+		zenithra_interpreter_update_variable(engine_data_str, engine_data_str, engine_data_str->INTERPRETER->command);
 	}
 }

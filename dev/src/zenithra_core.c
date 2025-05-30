@@ -98,6 +98,7 @@ bool zenithra_initialize_sdl(struct InEngineData *engine_data_str){
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
 
+    zenithra_disable_bypass_compositor(engine_data_str->SDL->window);
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
     return true;
@@ -113,11 +114,15 @@ bool zenithra_initialize_sdl(struct InEngineData *engine_data_str){
 **/
 
 void zenithra_destroy(struct InEngineData *engine_data_str){
+    SDL_SetRelativeMouseMode(SDL_FALSE);
+    SDL_SetWindowGrab(engine_data_str->SDL->window, SDL_FALSE);
+
     glDeleteProgram(engine_data_str->GL->program_id);
     glDeleteVertexArrays(1, &engine_data_str->GL->vertex_array_id);
     SDL_DestroyRenderer(engine_data_str->SDL->renderer);
     SDL_DestroyWindow(engine_data_str->SDL->window);
 
+    zenithra_interpreter_free_variable_list((void*)&engine_data_str->INTERPRETER->iv);
     zenithra_free((void**)&engine_data_str->MOVE);
     zenithra_free((void**)&engine_data_str->SDL);
     zenithra_free((void**)&engine_data_str->GL);
@@ -246,7 +251,7 @@ void zenithra_init_keys(struct InEngineData *engine_data_str){
  * Handles real-time console input
 **/
 
-#ifndef _WIN32
+#ifdef __linux__
 int _kbhit(){
     struct timeval tv = {0L, 0L};
     fd_set fds;
@@ -256,13 +261,60 @@ int _kbhit(){
 }
 #endif
 
-uint64_t zenithra_8_byte_to_int(char *str){
-    int i = 0;
-    uint64_t value = 0;
-    while(str[i]){
-        value = (value << 8) | (unsigned char)str[i];
-        i++;
+void zenithra_disable_bypass_compositor(SDL_Window *window){
+    SDL_SysWMinfo wmInfo;
+    SDL_VERSION(&wmInfo.version);
+    if(!SDL_GetWindowWMInfo(window, &wmInfo)){
+        SDL_Log("SDL_GetWindowWMInfo failed: %s", SDL_GetError());
+        zenithra_log_err(__FILE__, __LINE__, "Failed to disable compositor bypass");
+        return;
     }
-    value = value % 1024;
-    return value;
+
+    Display *display = wmInfo.info.x11.display;
+    Window xwindow = wmInfo.info.x11.window;
+
+    Atom bypass = XInternAtom(display, "_NET_WM_BYPASS_COMPOSITOR", False);
+    if(bypass){
+        unsigned long value = 0;
+        XChangeProperty(display, xwindow, bypass, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&value, 1);
+        XFlush(display);
+    }
+}
+
+void zenithra_interpreter_free_variable_list(struct InterpreterVariable **head){
+    struct InterpreterVariable *current = *head;
+    struct InterpreterVariable *next;
+    int i = 0;
+
+    while(current){
+        next = current->next;
+        zenithra_free((void**)&current);
+        current = next;
+    }
+
+    *head = NULL;
+}
+
+struct InterpreterVariable* zenithra_interpreter_create_variable_node(){
+    struct InterpreterVariable *node = malloc(sizeof(struct InterpreterVariable));
+    if(!node){
+        zenithra_log_err(__FILE__, __LINE__, "Node memory allocation failed");
+        return NULL;
+    }
+    node->next = NULL;
+    return node;
+}
+
+struct InterpreterVariable* zenithra_interpreter_match_variable_name(struct InEngineData *engine_data_str, char *variable_name){
+    struct InterpreterVariable *node = engine_data_str->INTERPRETER->iv;
+    while(1){
+        if(strcmp(node->variable_name, variable_name) == 0){
+            return node;
+        }
+        if(!node->next){
+            return NULL;
+        }
+        node = node->next;
+    }
+    return NULL;
 }

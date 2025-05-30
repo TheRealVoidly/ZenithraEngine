@@ -4,6 +4,9 @@
     #include<stdlib.h>
     #include<conio.h>
 #else
+    #include<X11/Xlib.h>
+    #include<X11/Xatom.h>
+    #include<SDL2/SDL_syswm.h>
     #include<execinfo.h>
     #include<unistd.h>
 #endif
@@ -70,8 +73,12 @@ typedef struct KeysEngineData{
 }KEYS;
 
 struct InterpreterVariable{
+    char variable_name[1024];
+
     int i_value;
     float f_value;
+
+    struct InterpreterVariable *next;
 };
 
 typedef struct ReadData{
@@ -79,7 +86,7 @@ typedef struct ReadData{
     int fval;
     int offset;
 
-    struct InterpreterVariable *iv[1024];
+    struct InterpreterVariable *iv;
 }INTERPRETER;
 
 struct InEngineData{
@@ -105,15 +112,13 @@ int _kbhit();
 
 void zenithra_signal_catch(int n);
 void zenithra_free(void **pp);
-void zenithra_free_list(void **head);
-void* zenithra_create_node(void **node, bool is_head, int struct_type_size);
 struct InEngineData* zenithra_init(int x, int y);
 void zenithra_destroy(struct InEngineData *engine_data_str);
 void zenithra_critical_error_occured(struct InEngineData *engine_data_str, char* file_name, int line, const char* error);
 bool zenithra_initialize_opengl(struct InEngineData *engine_data_str);
 bool zenithra_initialize_sdl(struct InEngineData *engine_data_str);
 void zenithra_init_keys(struct InEngineData *engine_data_str);
-uint64_t zenithra_8_byte_to_int(char *str);
+void zenithra_disable_bypass_compositor(SDL_Window *window);
 
 //-----------------------------------------------
 // Movement
@@ -171,8 +176,28 @@ void zenithra_move_object(struct InEngineData *engine_data_str, struct ObjectDat
 // Interpreter
 //-----------------------------------------------
 
-void zenithra_interpreter_begin(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
-void zenithra_register_callback();
-void zenithra_interpreter_loop(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
+void zenithra_interpreter_begin(struct InEngineData *engine_data_str, struct ObjectData **obj);
+void zenithra_register_callback(struct InEngineData *engine_data_str, char *callback_name, char *callback_request);
+void zenithra_interpreter_loop(struct InEngineData *engine_data_str, struct ObjectData **obj);
 void zenithra_read_command(struct InEngineData *engine_data_str, char *file_name);
 void zenithra_interpreter_check_commands(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
+void zenithra_interpreter_run_through(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
+void zenithra_interpreter_free_variable_list(struct InterpreterVariable **head);
+struct InterpreterVariable* zenithra_interpreter_create_variable_node();
+struct InterpreterVariable* zenithra_interpreter_match_variable_name(struct InEngineData *engine_data_str, char *variable_name);
+
+//-----------------------------------------------
+// Interpreter commands
+//-----------------------------------------------
+
+void zenithra_interpreter_command_register_variable(struct InEngineData *engine_data_str, char *file_name);
+void zenithra_interpreter_command_load_object(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
+void zenithra_interpreter_command_bind_texture_to_object(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
+void zenithra_interpreter_command_move_object(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
+void zenithra_interpreter_command_call_script(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
+
+//-----------------------------------------------
+// Deprecated
+//-----------------------------------------------
+
+uint64_t zenithra_8_byte_to_int(char *str);

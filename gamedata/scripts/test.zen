@@ -1,1 +1,2 @@
-move_object test_var x -0.01f
+move_object object_var_1 z float_value
+#move_object object_var_1 y 0.01

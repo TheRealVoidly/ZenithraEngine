@@ -17,9 +17,8 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
     Uint64 last_frame_time = 0, current_frame_time = 0;
 
     struct ObjectData **obj = zenithra_editor_init(engine_data_str);
-    zenithra_interpreter_begin(engine_data_str, obj, NULL);
+    zenithra_interpreter_begin(engine_data_str, obj);
 
-    int prev_object_num = engine_data_str->obj_num;
     do{
         last_frame_time = current_frame_time;
         current_frame_time = SDL_GetPerformanceCounter();
@@ -48,7 +47,7 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
         }
         glUseProgram(engine_data_str->GL->program_id);
 
-        zenithra_interpreter_loop(engine_data_str, obj, NULL);
+        zenithra_interpreter_loop(engine_data_str, obj);
 
         int *object_ray = zenithra_object_ray_intersects_detection(engine_data_str->MOVE->position, obj, engine_data_str);
         if(object_ray[0] == 1 && mouse_button_pressed != SDL_BUTTON(3)){

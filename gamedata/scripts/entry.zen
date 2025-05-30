@@ -1,9 +1,10 @@
-register_variable int test_var 0
+register_variable int object_var_1 0
+register_variable float float_value 0.01
 
-load_object ./gamedata/objects/plane.obj NULL -> test_var
-bind_texture_to_object test_var ./gamedata/textures/gravel.DDS
+load_object ./gamedata/objects/plane.obj NULL -> object_var_1
+bind_texture_to_object object_var_1 ./gamedata/textures/gravel.DDS
 
-move_object test_var x -20.0f
+move_object object_var_1 x -20.0
 
 {
 call_script ./gamedata/scripts/test.zen

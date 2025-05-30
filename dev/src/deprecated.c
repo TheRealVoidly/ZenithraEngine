@@ -1,51 +1,5 @@
 #include"zenithra_core.h"
 
-void zenithra_free_list(void **head){
-    if(!*head){
-        zenithra_log_msg("Attempt to free null list");
-        return;
-    }
-
-    struct TempList{
-        struct TempList *next;
-        char *temp_arr_fill;
-    };
-
-    void *temp;
-    while(((void*)(((struct TempList*)*head)->next))){
-        temp = *head;
-        *head = ((void*)(((struct TempList*)*head)->next));
-        zenithra_free(&temp);
-        if(!((void*)(((struct TempList*)*head)->next))){
-            zenithra_free(head);
-            break;
-        }
-    }
-}
-
-void* zenithra_create_node(void **node, bool is_head, int struct_type_size){
-    struct TempList{
-        struct TempList *next;
-        char temp_arr_fill[struct_type_size-8];
-    };
-    void *new_node;
-
-    if(is_head == true){
-        new_node = (void*)malloc(sizeof(struct TempList));
-        ((struct TempList*)new_node)->next = NULL;
-    }else{
-        if(((void*)(((struct TempList*)*node)->next))){
-            zenithra_log_msg("Attempt to create node with non-NULL pointer");
-            return new_node;
-        }
-        ((struct TempList*)*node)->next = (void*)malloc(sizeof(struct TempList));
-        new_node = ((void*)(((struct TempList*)*node)->next));
-        ((struct TempList*)new_node)->next = NULL;
-    }
-    
-    return (struct TempList*)new_node;
-}
-
 void zenithra_read_console_input(struct InEngineData *engine_data_str, struct ObjectData **obj){
     char c, input_buffer[255];
     memset(input_buffer, 0, sizeof(input_buffer));
@@ -71,4 +25,15 @@ void zenithra_read_console_input(struct InEngineData *engine_data_str, struct Ob
         memset(input_buffer, 0, sizeof(input_buffer));
         input_buffer_n = 0;
     }
+}
+
+uint64_t zenithra_8_byte_to_int(char *str){
+    int i = 0;
+    uint64_t value = 0;
+    while(str[i]){
+        value = (value << 8) | (unsigned char)str[i];
+        i++;
+    }
+    value = value % 1024;
+    return value;
 }
