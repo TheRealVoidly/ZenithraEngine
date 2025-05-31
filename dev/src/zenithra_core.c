@@ -304,17 +304,3 @@ struct InterpreterVariable* zenithra_interpreter_create_variable_node(){
     node->next = NULL;
     return node;
 }
-
-struct InterpreterVariable* zenithra_interpreter_match_variable_name(struct InEngineData *engine_data_str, char *variable_name){
-    struct InterpreterVariable *node = engine_data_str->INTERPRETER->iv;
-    while(1){
-        if(strcmp(node->variable_name, variable_name) == 0){
-            return node;
-        }
-        if(!node->next){
-            return NULL;
-        }
-        node = node->next;
-    }
-    return NULL;
-}

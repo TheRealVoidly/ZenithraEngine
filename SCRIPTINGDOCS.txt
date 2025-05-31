@@ -10,51 +10,48 @@ call_script ./gamedata/scripts/script_name.zen
 # This is a comment
 
 # Interpretor reads line by line
-# A basic command will look like this
 # Commands need to be seperated by new lines
-# Commands need to strictly follow this convention
 # Every "part" of a command needs to be seperated by a space
-test_command param1 param2 ...
-
-# Commands will be registered during startup
+# Commands need to strictly follow this convention
+# A basic command will look like this
+test_command param1 param2 ... -> output
 # If any command is spelled incorrectly it will be ignored
-register_command test_command param1 param2 ... -> variable
 
 # Variables will be registered like this
-register_variable int x
-
-# Supported data types are
-# int, float
-# Maybe more in the future
-
-# These are commands that execute only once on startup because they are placed before '{'
-load_object ./gamedata/objects/plane.obj 0 -> obj_num
-bind_texture_to_object obj_num ./gamedata/textures/gravel.DDS
+register_variable x value
+# Each variable is of type float so integers work as well as floats
+# Variables are shared across all scripts
 
 # This is going to register a "callback"
 # -> means value received from command will be outputed into variable
 register_callback callback -> variable
 # Callbacks are useful for pulling data/info from engine/game and then working with it in a script
 
-# Variables are shared across all scripts
+# These are commands that execute only once on startup because they are placed before '{'
+load_object ./gamedata/objects/plane.obj 0 -> obj_num
+bind_texture_to_object obj_num ./gamedata/textures/gravel.DDS
 
 # This represents a "loop"
 # It is going to run with every frame
 {
-move_object obj_num x+0.01f
+move_object obj_num x 0.01
 }
 # All commands outside of the loop below it will be ignored
 # Commands outside of the loop above it will only be run through once on invoking the script
 
 # List of currently supported commands:
-register_variable int/float variable_name initial_value
+
+register_variable variable_name initial_value
 load_object path_to_object path_to_texture -> returns_object_array_identifier
 bind_texture_to_object obj_num path_to_texture
-move_object obj_num x/y/z+-float_value
+move_object obj_num x/y/z value
 call_script script_path
+update_variable variable_x = value/variable_x (- + / *) value/variable_x
 
 # List of wip commands
+
 register_command -- possibility of creating own commands in the future
 register_callback
-if else_if else
-variable_x = variable_x (-\+\/\* value/variable_x)
+if statement_1 (&& || == !=) statement_2 command
+else_if statement_1 (&& || == !=) statement_2 command
+else command

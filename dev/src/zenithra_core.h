@@ -75,7 +75,6 @@ typedef struct KeysEngineData{
 struct InterpreterVariable{
     char variable_name[1024];
 
-    int i_value;
     float f_value;
 
     struct InterpreterVariable *next;
@@ -195,6 +194,7 @@ void zenithra_interpreter_command_load_object(struct InEngineData *engine_data_s
 void zenithra_interpreter_command_bind_texture_to_object(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
 void zenithra_interpreter_command_move_object(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
 void zenithra_interpreter_command_call_script(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
+void zenithra_interpreter_update_variable(struct InEngineData *engine_data_str, char *file_name);
 
 //-----------------------------------------------
 // Deprecated

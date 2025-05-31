@@ -135,7 +135,29 @@ void zenithra_interpreter_check_commands(struct InEngineData *engine_data_str, s
 		zenithra_interpreter_command_call_script(engine_data_str, obj, file_name);
 	}
 
-	if(zenithra_interpreter_match_variable_name(engine_data_str, engine_data_str->INTERPRETER->command)){
-		zenithra_interpreter_update_variable(engine_data_str, engine_data_str, engine_data_str->INTERPRETER->command);
+	if(strcmp(engine_data_str->INTERPRETER->command, "update_variable") == 0){
+		zenithra_interpreter_update_variable(engine_data_str, file_name);
 	}
+}
+
+/**
+ * Matches input variable to variable list
+ * 
+ * @param engine_data_str
+ * @param variable_name = input variable that we want to match
+ * @return valid node containing matched variable name, otherwise if no variable was found return NULL
+**/
+
+struct InterpreterVariable* zenithra_interpreter_match_variable_name(struct InEngineData *engine_data_str, char *variable_name){
+	struct InterpreterVariable *node = engine_data_str->INTERPRETER->iv;
+	while(1){
+		if(strcmp(node->variable_name, variable_name) == 0){
+			return node;
+		}
+		if(!node->next){
+			return NULL;
+		}
+		node = node->next;
+	}
+	return NULL;
 }

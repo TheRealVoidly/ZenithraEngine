@@ -1,5 +1,5 @@
-register_variable int object_var_1 0
-register_variable float float_value 0.01
+register_variable object_var_1 0
+register_variable float_value 0.5
 
 load_object ./gamedata/objects/plane.obj NULL -> object_var_1
 bind_texture_to_object object_var_1 ./gamedata/textures/gravel.DDS

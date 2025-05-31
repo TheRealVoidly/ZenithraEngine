@@ -1,2 +1,7 @@
 move_object object_var_1 z float_value
-#move_object object_var_1 y 0.01
+
+update_variable float_value = float_value - 1
+
+move_object object_var_1 z float_value
+
+update_variable float_value = float_value + 1
