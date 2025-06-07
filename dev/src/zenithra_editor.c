@@ -108,7 +108,7 @@ struct ObjectData** zenithra_editor_init(struct InEngineData *engine_data_str){
  * @param obj
  * @param obj_num
  * @param vector x/y/z
- * @param value
+ * @param value by how much an object is going to be moved
 **/
 
 void zenithra_move_object(struct InEngineData *engine_data_str, struct ObjectData **obj, int obj_num, char vector, GLfloat value){
@@ -146,4 +146,17 @@ void zenithra_move_object(struct InEngineData *engine_data_str, struct ObjectDat
 
     glBindBuffer(GL_ARRAY_BUFFER, obj[obj_num]->obj_vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * obj[obj_num]->obj_size * 9), &obj[obj_num]->vertex_buffer_data[0], GL_STATIC_DRAW);
+}
+
+/**
+ * Function for scaling objects in size
+ * 
+ * @param engine_data_str
+ * @param obj
+ * @param obj_num
+ * @param value by how much an object is going to be scaled in all directions from the epicentre
+**/
+
+void zenithra_scale_object(struct InEngineData *engine_data_str, struct ObjectData **obj, int obj_num, GLfloat value){
+    
 }
