@@ -1,7 +1,0 @@
-register_variable object 0
-
-load_object ./gamedata/objects/tifa.obj ./gamedata/textures/mugshot1.DDS -> object
-
-{
-#move_object object x -0.01
-}

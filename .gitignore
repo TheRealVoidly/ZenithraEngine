@@ -4,3 +4,4 @@ main
 dev/zenithra_log.txt
 dev/src/*.o
 NOTICE
+gamedata/
