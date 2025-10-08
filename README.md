@@ -14,4 +14,4 @@ All games must include the attribution: .
 See [LICENSE] for full terms.
 
 # Patreon
-https://patreon.com/ZenithraEngine?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink
+https://www.patreon.com/cw/ZenithraEngine
