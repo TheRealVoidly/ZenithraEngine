@@ -2,6 +2,14 @@
 TODO
 -------------------------------------------------------
 
+-- Fix crashes when trying to load more than 2 objects
+
+-- Fix incorrect object detection
+
+-- Seperate error handling into a seperate source file and invest more time into it
+
+-- Fix the focus loss logic in events - a bit clunky when holding escape
+
 -- Add memory usage counter
 
 -- Make objects scaleable
@@ -12,8 +20,7 @@ TODO
 
 -- Create an editor
     -- Add object scaling function
-    !-- Detect hover over object and load in direction arrows
+    !-- Make the object interactable only after user clicks LMB
     	-- Make the arrows interactable with LMB and move the object
-        -- Make the arrows visible when hovering over them after hovering over an object
 
 -- Create normal movement with collisions and gravity, and fly mode.. Maybe game's task ?

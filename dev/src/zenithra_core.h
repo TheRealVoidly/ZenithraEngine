@@ -88,12 +88,17 @@ typedef struct ReadData{
     struct InterpreterVariable *iv;
 }INTERPRETER;
 
+typedef struct EditorData{
+    int selected_object;
+}EDITOR;
+
 struct InEngineData{
     MOVE *MOVE;
-    SDL *SDL;
+    SDL *SDL;   
     GL *GL;
     KEYS *KEYS;
     INTERPRETER *INTERPRETER;
+    EDITOR *EDITOR;
 
     float delta_time;
 
@@ -166,6 +171,12 @@ bool zenithra_alloc_new_obj(struct InEngineData *engine_data_str, struct ObjectD
 //-----------------------------------------------
 // Editor
 //-----------------------------------------------
+
+#define ENGINE_OBJ_X_ARROW 1
+#define ENGINE_OBJ_Y_ARROW 2
+#define ENGINE_OBJ_Z_ARROW 3
+
+#define START_OF_OBJECT_INDEX 1
 
 int* zenithra_object_ray_intersects_detection(float origin[3], struct ObjectData **obj, struct InEngineData *engine_data_str);
 struct ObjectData** zenithra_editor_init(struct InEngineData *engine_data_str);

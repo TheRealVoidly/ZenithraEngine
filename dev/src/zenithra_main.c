@@ -49,25 +49,38 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
 
         zenithra_interpreter_loop(engine_data_str, obj);
 
-        int *object_ray = zenithra_object_ray_intersects_detection(engine_data_str->MOVE->position, obj, engine_data_str);
+        int *object_ray = NULL;
+        object_ray = zenithra_object_ray_intersects_detection(engine_data_str->MOVE->position, obj, engine_data_str);
         if(object_ray[0] == 1 && mouse_button_pressed != SDL_BUTTON(3)){
-            zenithra_unbind_objects(obj[0]);
-            zenithra_unbind_objects(obj[1]);
-            zenithra_unbind_objects(obj[2]);
+            if(mouse_button_pressed == SDL_BUTTON(1) && !engine_data_str->focus_lost && !obj[object_ray[1]]->engine_obj){
+                engine_data_str->EDITOR->selected_object = object_ray[1];
+            }
+        }
 
-            int temp_array[255] = {0, 0, 1, 1, 2, 2, -1};
-            zenithra_bind_objects(obj, temp_array, object_ray[1]);
+        if(engine_data_str->EDITOR->selected_object != 0){
+            zenithra_unbind_objects(obj[ENGINE_OBJ_X_ARROW]);
+            zenithra_unbind_objects(obj[ENGINE_OBJ_Y_ARROW]);
+            zenithra_unbind_objects(obj[ENGINE_OBJ_Z_ARROW]);
 
-            zenithra_render_object(engine_data_str, obj, 0);
-            zenithra_render_object(engine_data_str, obj, 1);
-            zenithra_render_object(engine_data_str, obj, 2);
-            if(mouse_button_pressed == SDL_BUTTON(1)){
-                //zenithra_move_object(engine_data_str, obj, object_ray[1], 'x', 0.01f);
+            int temp_array[255] = {ENGINE_OBJ_X_ARROW, ENGINE_OBJ_Y_ARROW, ENGINE_OBJ_Z_ARROW, 0};
+            zenithra_bind_objects(obj, temp_array, engine_data_str->EDITOR->selected_object);
+
+            zenithra_render_object(engine_data_str, obj, ENGINE_OBJ_X_ARROW);
+            zenithra_render_object(engine_data_str, obj, ENGINE_OBJ_Y_ARROW);
+            zenithra_render_object(engine_data_str, obj, ENGINE_OBJ_Z_ARROW);
+            if(mouse_button_pressed == SDL_BUTTON(1) && object_ray[1] == ENGINE_OBJ_X_ARROW){
+                zenithra_move_object(engine_data_str, obj, engine_data_str->EDITOR->selected_object, 'x', 0.01f);
+            }
+            if(mouse_button_pressed == SDL_BUTTON(1) && object_ray[1] == ENGINE_OBJ_Y_ARROW){
+                zenithra_move_object(engine_data_str, obj, engine_data_str->EDITOR->selected_object, 'y', 0.01f);
+            }
+            if(mouse_button_pressed == SDL_BUTTON(1) && object_ray[1] == ENGINE_OBJ_Z_ARROW){
+                zenithra_move_object(engine_data_str, obj, engine_data_str->EDITOR->selected_object, 'z', 0.01f);
             }
         }
         zenithra_free((void**)&object_ray);
-
-        for(int i = 0; i < engine_data_str->obj_num; i++){
+        
+        for(int i = START_OF_OBJECT_INDEX; i < engine_data_str->obj_num; i++){
             if(!obj[i]->engine_obj){
                 zenithra_render_object(engine_data_str, obj, i);
             }
@@ -76,7 +89,7 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
         SDL_GL_SwapWindow(engine_data_str->SDL->window);
     }while(!program_should_quit);
 
-    for(int i = 0; i < engine_data_str->obj_num; i++){
+    for(int i = START_OF_OBJECT_INDEX; i < engine_data_str->obj_num; i++){
         glDeleteBuffers(1, &obj[i]->obj_vertex_buffer);
         glDeleteBuffers(1, &obj[i]->obj_uv_buffer);
         zenithra_free((void**)&obj[i]);

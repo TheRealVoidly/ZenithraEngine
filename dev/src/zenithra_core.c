@@ -22,13 +22,35 @@ struct InEngineData* zenithra_init(int x, int y){
     zenithra_log_init();
     
     struct InEngineData *engine_data_str = (struct InEngineData*)malloc(sizeof(*engine_data_str));
+    if(!engine_data_str){
+        zenithra_critical_error_occured(NULL, __FILE__, __LINE__, "engine_data_str memmory alloc failed");
+    }
     engine_data_str->SDL = (struct SDLEngineData*)malloc(sizeof(*engine_data_str->SDL));
+    if(!engine_data_str){
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "engine_data_str->SDL memmory alloc failed");
+    }
     engine_data_str->GL = (struct GLEngineData*)malloc(sizeof(*engine_data_str->GL));
+    if(!engine_data_str){
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "engine_data_str->GL memmory alloc failed");
+    }
     engine_data_str->MOVE = (struct MovementEngineData*)malloc(sizeof(*engine_data_str->MOVE));
+    if(!engine_data_str){
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "engine_data_str->MOVE memmory alloc failed");
+    }
     engine_data_str->KEYS = (struct KeysEngineData*)malloc(sizeof(*engine_data_str->KEYS));
+    if(!engine_data_str){
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "engine_data_str->KEYS memmory alloc failed");
+    }
     engine_data_str->INTERPRETER = (struct ReadData*)malloc(sizeof(*engine_data_str->INTERPRETER));
+    if(!engine_data_str){
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "engine_data_str->INTERPRETER memmory alloc failed");
+    }
+    engine_data_str->EDITOR = (struct EditorData*)malloc(sizeof(*engine_data_str->EDITOR));
+    if(!engine_data_str){
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "engine_data_str->EDITOR memmory alloc failed");
+    }
 
-    engine_data_str->obj_num = 0; // Number of loaded objects is 0 at initialization
+    engine_data_str->obj_num = START_OF_OBJECT_INDEX; // Number of loaded objects is 0 at initialization (object with the index 0 is not an object, just a placeholder, that's why the initialized number is 1, because we start indexing from 1)
     engine_data_str->focus_lost = false; // Window starts in focus
 
     zenithra_log_msg("Zenithra engine started");
@@ -122,17 +144,19 @@ void zenithra_destroy(struct InEngineData *engine_data_str){
     SDL_DestroyRenderer(engine_data_str->SDL->renderer);
     SDL_DestroyWindow(engine_data_str->SDL->window);
 
+    SDL_Quit();
+
+    free(engine_data_str->INTERPRETER->command);
     zenithra_interpreter_free_variable_list((void*)&engine_data_str->INTERPRETER->iv);
     zenithra_free((void**)&engine_data_str->MOVE);
     zenithra_free((void**)&engine_data_str->SDL);
     zenithra_free((void**)&engine_data_str->GL);
     zenithra_free((void**)&engine_data_str->INTERPRETER);
     zenithra_free((void**)&engine_data_str->KEYS);
+    zenithra_free((void**)&engine_data_str->EDITOR);
     zenithra_free((void**)&engine_data_str);
 
-    SDL_Quit();
     zenithra_log_msg("Zenithra exited successfully");
-    exit(1);
 }
 
 /**

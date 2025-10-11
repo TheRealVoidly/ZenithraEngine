@@ -28,8 +28,8 @@ int* zenithra_object_ray_intersects_detection(float origin[3], struct ObjectData
 
     float temp = 1e30f;
 
-    for(int j = 0; j < engine_data_str->obj_num; j++){
-        if(!obj[j]->engine_obj){
+    for(int j = START_OF_OBJECT_INDEX; j < engine_data_str->obj_num; j++){
+        //if(!obj[j]->engine_obj){
             for(int i = 0; i < obj[j]->obj_size * 9; i+=3){
                 float *v0 = &obj[j]->vertex_buffer_data[i+0];
                 float *v1 = &obj[j]->vertex_buffer_data[i+3];
@@ -78,7 +78,7 @@ int* zenithra_object_ray_intersects_detection(float origin[3], struct ObjectData
                     }
                 }
             }
-        }
+        //}
     }
     return n;
 }
@@ -91,12 +91,15 @@ int* zenithra_object_ray_intersects_detection(float origin[3], struct ObjectData
 **/
 
 struct ObjectData** zenithra_editor_init(struct InEngineData *engine_data_str){
-    struct ObjectData **obj;
-    obj = (struct ObjectData**)malloc(3 * sizeof(struct ObjectData));
+    engine_data_str->EDITOR->selected_object = 0;
 
-    obj[0] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowx.obj", "./enginedata/colors/red.DDS");
-    obj[1] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowy.obj", "./enginedata/colors/green.DDS");
-    obj[2] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowz.obj", "./enginedata/colors/blue.DDS");
+    struct ObjectData **obj;
+    obj = (struct ObjectData**)malloc(4 * sizeof(struct ObjectData));
+
+    obj[0] = NULL;
+    obj[ENGINE_OBJ_X_ARROW] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowx.obj", "./enginedata/colors/red.DDS");
+    obj[ENGINE_OBJ_Y_ARROW] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowy.obj", "./enginedata/colors/green.DDS");
+    obj[ENGINE_OBJ_Z_ARROW] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowz.obj", "./enginedata/colors/blue.DDS");
 
     return obj;
 }
@@ -158,5 +161,5 @@ void zenithra_move_object(struct InEngineData *engine_data_str, struct ObjectDat
 **/
 
 void zenithra_scale_object(struct InEngineData *engine_data_str, struct ObjectData **obj, int obj_num, GLfloat value){
-    
+
 }
