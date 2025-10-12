@@ -304,27 +304,3 @@ void zenithra_disable_bypass_compositor(SDL_Window *window){
         XFlush(display);
     }
 }
-
-void zenithra_interpreter_free_variable_list(struct InterpreterVariable **head){
-    struct InterpreterVariable *current = *head;
-    struct InterpreterVariable *next;
-    int i = 0;
-
-    while(current){
-        next = current->next;
-        zenithra_free((void**)&current);
-        current = next;
-    }
-
-    *head = NULL;
-}
-
-struct InterpreterVariable* zenithra_interpreter_create_variable_node(){
-    struct InterpreterVariable *node = malloc(sizeof(struct InterpreterVariable));
-    if(!node){
-        zenithra_log_err(__FILE__, __LINE__, "Node memory allocation failed");
-        return NULL;
-    }
-    node->next = NULL;
-    return node;
-}

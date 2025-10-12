@@ -44,7 +44,7 @@ GLuint zenithra_load_shaders(struct InEngineData *engine_data_str){
 }
 
 bool zenithra_alloc_new_obj(struct InEngineData *engine_data_str, struct ObjectData **obj){
-	struct ObjectData **temp = (struct ObjectData**)realloc(obj, sizeof(struct ObjectData) * (engine_data_str->obj_num) + 1);
+	struct ObjectData **temp = (struct ObjectData**)realloc(*obj, sizeof(struct ObjectData) * (engine_data_str->obj_num) + 1);
 	if(temp){
 		obj = temp;
 		temp = NULL;

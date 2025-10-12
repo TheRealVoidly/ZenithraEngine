@@ -2,11 +2,7 @@
 TODO
 -------------------------------------------------------
 
--- Fix crashes when trying to load more than 2 objects
-
 -- Fix incorrect object detection
-
--- Seperate error handling into a seperate source file and invest more time into it
 
 -- Fix the focus loss logic in events - a bit clunky when holding escape
 

@@ -17,10 +17,6 @@ int* zenithra_object_ray_intersects_detection(float origin[3], struct ObjectData
     n[0] = 0;
     n[1] = 0;
 
-    if(!obj[engine_data_str->obj_num-1]){
-        return n;
-    }
-
     float length = sqrtf((engine_data_str->MOVE->direction_look[0]*engine_data_str->MOVE->direction_look[0]) + (engine_data_str->MOVE->direction_look[1]*engine_data_str->MOVE->direction_look[1]) + (engine_data_str->MOVE->direction_look[2]*engine_data_str->MOVE->direction_look[2]));
     dir[0] = (engine_data_str->MOVE->direction_look[0] /= length);
     dir[1] = (engine_data_str->MOVE->direction_look[1] /= length);
