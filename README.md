@@ -12,6 +12,3 @@ All games must include the attribution: .
 **"Powered by - ZenithraEngine | Developed by - Voidly (TheRealVoidly)"**
 
 See [LICENSE] for full terms.
-
-# Patreon
-https://www.patreon.com/cw/ZenithraEngine
