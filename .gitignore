@@ -4,5 +4,6 @@ main
 dev/zenithra_log.txt
 dev/src/*.o
 gamedata/
-dev/workspace.sublime-workspace
+dev/ZE.sublime-workspace
+dev/ZE.sublime-project
 dev/compile_flags.txt
