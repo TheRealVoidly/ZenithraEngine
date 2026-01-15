@@ -90,7 +90,7 @@ struct ObjectData** zenithra_editor_init(struct InEngineData *engine_data_str){
     engine_data_str->EDITOR->selected_object = 0;
 
     struct ObjectData **obj;
-    obj = (struct ObjectData**)malloc(4 * sizeof(struct ObjectData));
+    obj = malloc(4 * sizeof(struct ObjectData));
 
     obj[0] = NULL;
     obj[ENGINE_OBJ_X_ARROW] = zenithra_load_obj(engine_data_str, true, "./enginedata/vectorarrows/vectorarrowx.obj", "./enginedata/colors/red.DDS");

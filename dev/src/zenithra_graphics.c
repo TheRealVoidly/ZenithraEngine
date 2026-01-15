@@ -59,7 +59,7 @@ struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool 
 	FILE *fp = NULL;
 	char buffer[255];
 
-	struct ObjectData *obj = (void*)malloc(sizeof(struct ObjectData));
+	struct ObjectData *obj = malloc(sizeof(struct ObjectData));
 	obj->bounded_vertex_buffer_data = NULL;
 	obj->obj_size = 0;
 
@@ -83,7 +83,7 @@ struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool 
 	}
 
 	int *face_buffer_data;
-	face_buffer_data = (int*)malloc(sizeof(int) * obj->obj_size * 9);
+	face_buffer_data = malloc(sizeof(int) * obj->obj_size * 9);
 
 	fseek(fp, 0, SEEK_SET);
 	int i = 0;
@@ -100,12 +100,12 @@ struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool 
 		}
 	}
 
-	obj->vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * obj->obj_size * 9);
-	GLfloat *uvs_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * obj->obj_size * 6);
-	GLfloat *normals_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * obj->obj_size * 9);
-	GLfloat *temp_vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * obj->obj_size * 9);
-	GLfloat *temp_uvs_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * obj->obj_size * 6);
-	GLfloat *temp_normals_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * obj->obj_size * 9);
+	obj->vertex_buffer_data = malloc(sizeof(GLfloat) * obj->obj_size * 9);
+	GLfloat *uvs_buffer_data = malloc(sizeof(GLfloat) * obj->obj_size * 6);
+	GLfloat *normals_buffer_data = malloc(sizeof(GLfloat) * obj->obj_size * 9);
+	GLfloat *temp_vertex_buffer_data = malloc(sizeof(GLfloat) * obj->obj_size * 9);
+	GLfloat *temp_uvs_buffer_data = malloc(sizeof(GLfloat) * obj->obj_size * 6);
+	GLfloat *temp_normals_buffer_data = malloc(sizeof(GLfloat) * obj->obj_size * 9);
 
 	fseek(fp, 0, SEEK_SET);
 	int res = fscanf(fp, "%s", buffer);
@@ -216,7 +216,7 @@ GLuint zenithra_create_texture(const char* file_name){
 	unsigned char header[124];
 	FILE *fp = NULL;
 
-	if(strcmp(file_name, "NULL") == 0){
+	if(!file_name){
 		return 0;
 	}
 
@@ -245,7 +245,7 @@ GLuint zenithra_create_texture(const char* file_name){
 	fseek(fp, 0, SEEK_END);
 	buf_size = ftell(fp) - 128;
 	fseek(fp, 128, SEEK_SET);
-	data = (unsigned char*)malloc(buf_size);
+	data = malloc(buf_size);
 	int bytesRead = fread(data, 1, buf_size, fp);
 	if(bytesRead != buf_size){
 		zenithra_log_err(__FILE__, __LINE__, "Failed to read DDS texture data");
@@ -365,7 +365,7 @@ void zenithra_render_object(struct InEngineData *engine_data_str, struct ObjectD
 
 void zenithra_bind_objects(struct ObjectData **obj, int objects_to_be_bound[255], int target_object){
 	for(int i = 0; objects_to_be_bound[i] != 0; i++){
-		obj[objects_to_be_bound[i]]->bounded_vertex_buffer_data = (GLfloat*)malloc(sizeof(GLfloat) * obj[objects_to_be_bound[i]]->obj_size * 9);
+		obj[objects_to_be_bound[i]]->bounded_vertex_buffer_data = malloc(sizeof(GLfloat) * obj[objects_to_be_bound[i]]->obj_size * 9);
 	}
 
 	for(int i = 0; objects_to_be_bound[i] != 0; i++){

@@ -13,7 +13,7 @@ void zenithra_register_callback(struct InEngineData *engine_data_str, char *call
 **/
 
 void zenithra_interpreter_begin(struct InEngineData *engine_data_str, struct ObjectData **obj){
-	engine_data_str->INTERPRETER->command = (char*)malloc(sizeof(char) * 256);
+	engine_data_str->INTERPRETER->command = malloc(sizeof(char) * 256);
 	memset(engine_data_str->INTERPRETER->command, 0, 256);
 	engine_data_str->INTERPRETER->offset = 0;
 

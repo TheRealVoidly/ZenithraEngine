@@ -31,7 +31,7 @@ void zenithra_log_err(const char* file_name, int line, const char* error_message
 
 char* zenithra_get_time(){
     char *buffer;
-    buffer = (char*)malloc(sizeof(char) * 255);
+    buffer = malloc(sizeof(char) * 255);
     time_t rawtime = time(NULL);
     struct tm *time_info;
     time_info = localtime(&rawtime);
