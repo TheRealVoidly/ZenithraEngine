@@ -88,24 +88,17 @@ typedef struct ReadData{
     struct InterpreterVariable *iv;
 }INTERPRETER;
 
-typedef struct EditorData{
-    int selected_object;
-}EDITOR;
-
 struct InEngineData{
     MOVE *MOVE;
     SDL *SDL;   
     GL *GL;
     KEYS *KEYS;
     INTERPRETER *INTERPRETER;
-    EDITOR *EDITOR;
 
     float delta_time;
 
     int window_x;
     int window_y;
-
-    int obj_num;
 
     bool focus_lost;
 };
@@ -142,56 +135,26 @@ bool zenithra_handle_event_poll(struct InEngineData *engine_data_str);
 // Graphics
 //-----------------------------------------------
 
-struct ObjectData{
-    long long obj_size;
-    GLuint obj_normal_buffer;
-    GLuint obj_vertex_buffer;
-    GLuint obj_uv_buffer;
-    GLuint obj_bound_texture;
 
-    vec3 translation_vector;
-
-    GLfloat *vertex_buffer_data;
-    GLfloat *bounded_vertex_buffer_data;
-
-    GLfloat x_max, x_average, y_max, y_average, z_max, z_average;
-
-    bool engine_obj;
-};
-
-GLuint zenithra_load_shaders(struct InEngineData *engine_data_str);
-GLuint zenithra_create_texture(const char* file_name);
-struct ObjectData* zenithra_load_obj(struct InEngineData *engine_data_str, bool engine_obj, const char* object_file_name, const char* texture_file_name);
-void zenithra_render_object(struct InEngineData *engine_data_str, struct ObjectData **obj, int obj_num);
-void zenithra_rebind_texture(struct ObjectData **obj, int obj_num, const char* file_name);
-void zenithra_bind_objects(struct ObjectData **obj, int objects_to_be_bound[255], int target_object);
-void zenithra_unbind_objects(struct ObjectData *obj);
-bool zenithra_alloc_new_obj(struct InEngineData *engine_data_str, struct ObjectData **obj);
 
 //-----------------------------------------------
 // Editor
 //-----------------------------------------------
 
-#define ENGINE_OBJ_X_ARROW 1
-#define ENGINE_OBJ_Y_ARROW 2
-#define ENGINE_OBJ_Z_ARROW 3
-
 #define START_OF_OBJECT_INDEX 1
 
-int* zenithra_object_ray_intersects_detection(float origin[3], struct ObjectData **obj, struct InEngineData *engine_data_str);
-struct ObjectData** zenithra_editor_init(struct InEngineData *engine_data_str);
-void zenithra_move_object(struct InEngineData *engine_data_str, struct ObjectData **obj, int obj_num, char vector, GLfloat value);
+int* zenithra_object_ray_intersects_detection(float origin[3], struct InEngineData *engine_data_str);
 
 //-----------------------------------------------
 // Interpreter
 //-----------------------------------------------
 
-void zenithra_interpreter_begin(struct InEngineData *engine_data_str, struct ObjectData **obj);
+void zenithra_interpreter_begin(struct InEngineData *engine_data_str);
 void zenithra_register_callback(struct InEngineData *engine_data_str, char *callback_name, char *callback_request);
-void zenithra_interpreter_loop(struct InEngineData *engine_data_str, struct ObjectData **obj);
+void zenithra_interpreter_loop(struct InEngineData *engine_data_str);
 void zenithra_read_command(struct InEngineData *engine_data_str, char *file_name);
-void zenithra_interpreter_check_commands(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
-void zenithra_interpreter_run_through(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
+void zenithra_interpreter_check_commands(struct InEngineData *engine_data_str, char *file_name);
+void zenithra_interpreter_run_through(struct InEngineData *engine_data_str, char *file_name);
 void zenithra_interpreter_free_variable_list(struct InterpreterVariable **head);
 struct InterpreterVariable* zenithra_interpreter_create_variable_node();
 struct InterpreterVariable* zenithra_interpreter_match_variable_name(struct InEngineData *engine_data_str, char *variable_name);
@@ -201,10 +164,7 @@ struct InterpreterVariable* zenithra_interpreter_match_variable_name(struct InEn
 //-----------------------------------------------
 
 void zenithra_interpreter_command_register_variable(struct InEngineData *engine_data_str, char *file_name);
-void zenithra_interpreter_command_load_object(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
-void zenithra_interpreter_command_bind_texture_to_object(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
-void zenithra_interpreter_command_move_object(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
-void zenithra_interpreter_command_call_script(struct InEngineData *engine_data_str, struct ObjectData **obj, char *file_name);
+void zenithra_interpreter_command_call_script(struct InEngineData *engine_data_str, char *file_name);
 void zenithra_interpreter_update_variable(struct InEngineData *engine_data_str, char *file_name);
 
 //-----------------------------------------------

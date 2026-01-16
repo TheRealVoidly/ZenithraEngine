@@ -16,82 +16,34 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
     bool program_should_quit = false;
     Uint64 last_frame_time = 0, current_frame_time = 0;
 
-    struct ObjectData **obj = zenithra_editor_init(engine_data_str);
-    zenithra_interpreter_begin(engine_data_str, obj);
-
     do{
         last_frame_time = current_frame_time;
         current_frame_time = SDL_GetPerformanceCounter();
         engine_data_str->delta_time = (double)((current_frame_time - last_frame_time) * 1000 / (double)SDL_GetPerformanceFrequency());
 
-        Uint32 mouse_button_pressed = SDL_GetMouseState(NULL, NULL);
+        /*Uint32 mouse_button_pressed = SDL_GetMouseState(NULL, NULL);
         if(!engine_data_str->focus_lost){
             zenithra_calc_mouse_movement(engine_data_str);
 
             if(SDL_BUTTON(3) == mouse_button_pressed){
                 zenithra_update_position(engine_data_str);
             }
-        }
+        }*/
         program_should_quit = zenithra_handle_event_poll(engine_data_str);
 
-        glClearColor(0.03f, 0.0f, 0.05f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if(SDL_BUTTON(3) != mouse_button_pressed){
-            glUseProgram(0); 
-            glPointSize(3.0f);
-            glBegin(GL_POINTS);
-            glColor3f(1.0f, 0.0f, 0.0f);
-            glVertex2f(0.0f, 0.0f);
-            glEnd();
-        }
+        //if(SDL_BUTTON(3) != mouse_button_pressed){
+        glUseProgram(0); 
+        glPointSize(3.0f);
+        glBegin(GL_POINTS);
+        glColor3f(1.0f, 0.0f, 0.0f);
+        glVertex2f(0.0f, 0.0f);
+        glEnd();
+        //}
         glUseProgram(engine_data_str->GL->program_id);
-
-        zenithra_interpreter_loop(engine_data_str, obj);
-
-        int *object_ray = NULL;
-        object_ray = zenithra_object_ray_intersects_detection(engine_data_str->MOVE->position, obj, engine_data_str);
-        if(object_ray[0] == 1 && mouse_button_pressed != SDL_BUTTON(3)){
-            if(mouse_button_pressed == SDL_BUTTON(1) && !engine_data_str->focus_lost && !obj[object_ray[1]]->engine_obj){
-                engine_data_str->EDITOR->selected_object = object_ray[1];
-            }
-        }
-
-        if(engine_data_str->EDITOR->selected_object != 0){
-            zenithra_unbind_objects(obj[ENGINE_OBJ_X_ARROW]);
-            zenithra_unbind_objects(obj[ENGINE_OBJ_Y_ARROW]);
-            zenithra_unbind_objects(obj[ENGINE_OBJ_Z_ARROW]);
-
-            int temp_array[255] = {ENGINE_OBJ_X_ARROW, ENGINE_OBJ_Y_ARROW, ENGINE_OBJ_Z_ARROW, 0};
-            zenithra_bind_objects(obj, temp_array, engine_data_str->EDITOR->selected_object);
-
-            zenithra_render_object(engine_data_str, obj, ENGINE_OBJ_X_ARROW);
-            zenithra_render_object(engine_data_str, obj, ENGINE_OBJ_Y_ARROW);
-            zenithra_render_object(engine_data_str, obj, ENGINE_OBJ_Z_ARROW);
-            if(mouse_button_pressed == SDL_BUTTON(1) && object_ray[1] == ENGINE_OBJ_X_ARROW){
-                zenithra_move_object(engine_data_str, obj, engine_data_str->EDITOR->selected_object, 'x', 0.01f);
-            }
-            if(mouse_button_pressed == SDL_BUTTON(1) && object_ray[1] == ENGINE_OBJ_Y_ARROW){
-                zenithra_move_object(engine_data_str, obj, engine_data_str->EDITOR->selected_object, 'y', 0.01f);
-            }
-            if(mouse_button_pressed == SDL_BUTTON(1) && object_ray[1] == ENGINE_OBJ_Z_ARROW){
-                zenithra_move_object(engine_data_str, obj, engine_data_str->EDITOR->selected_object, 'z', 0.01f);
-            }
-        }
-        zenithra_free((void**)&object_ray);
-        
-        for(int i = START_OF_OBJECT_INDEX; i < engine_data_str->obj_num; i++){
-            if(!obj[i]->engine_obj){
-                zenithra_render_object(engine_data_str, obj, i);
-            }
-        }
 
         SDL_GL_SwapWindow(engine_data_str->SDL->window);
     }while(!program_should_quit);
-
-    for(int i = START_OF_OBJECT_INDEX; i < engine_data_str->obj_num; i++){
-        glDeleteBuffers(1, &obj[i]->obj_vertex_buffer);
-        glDeleteBuffers(1, &obj[i]->obj_uv_buffer);
-        zenithra_free((void**)&obj[i]);
-    }
 }

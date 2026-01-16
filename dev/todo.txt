@@ -2,24 +2,10 @@
 TODO
 -------------------------------------------------------
 
--- When loading an object, figure out which configuration of data is used and act accordingly!!!
-
 -- In script files make it so NULL represents the value NULL
-
--- Fix incorrect object detection
 
 -- Fix the focus loss logic in events - a bit clunky when holding escape
 
 -- Add memory usage counter
 
 -- Make it so that incorrect usage of command in .zen files doesn't cause undefined behaviour (terminate command on \n)
-
--- Make it possible for objects to be loaded with preexisting textures
-
--- Remove arrows pointing in different directions and rotate them in the engine
-
--- Create an editor
-    -- Add object scaling function
-    !-- Make the object interactable only after user clicks LMB
-        -- Scale arrows to object so they're not absurdly large or small compared to selected object
-    	-- Make the arrows interactable with LMB and move the object

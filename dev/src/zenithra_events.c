@@ -10,28 +10,19 @@ bool zenithra_handle_event_poll(struct InEngineData *engine_data_str){
 			program_should_quit = true;
 		}
 
-		if(key_state[SDL_SCANCODE_ESCAPE] && !engine_data_str->KEYS->escape && engine_data_str->EDITOR->selected_object != 0){
-			engine_data_str->EDITOR->selected_object = 0;
+		if(key_state[SDL_SCANCODE_ESCAPE] && !engine_data_str->focus_lost && !engine_data_str->KEYS->escape){
+			SDL_ShowCursor(SDL_ENABLE);
+			SDL_SetRelativeMouseMode(SDL_FALSE);
+			SDL_SetWindowGrab(engine_data_str->SDL->window, SDL_FALSE);
+			engine_data_str->focus_lost = true;
 			engine_data_str->KEYS->escape = true;
-		}else{
-			if(engine_data_str->EDITOR->selected_object == 0){
-				engine_data_str->KEYS->escape = false;
-			}
-
-			if(key_state[SDL_SCANCODE_ESCAPE] && !engine_data_str->focus_lost && !engine_data_str->KEYS->escape){
-				SDL_ShowCursor(SDL_ENABLE);
-				SDL_SetRelativeMouseMode(SDL_FALSE);
-				SDL_SetWindowGrab(engine_data_str->SDL->window, SDL_FALSE);
-				engine_data_str->focus_lost = true;
-				engine_data_str->KEYS->escape = true;
-			}
-			if(key_state[SDL_SCANCODE_ESCAPE] && engine_data_str->focus_lost && !engine_data_str->KEYS->escape){
-				SDL_ShowCursor(SDL_DISABLE);
-				SDL_SetRelativeMouseMode(SDL_TRUE);
-				SDL_SetWindowGrab(engine_data_str->SDL->window, SDL_TRUE);
-				engine_data_str->focus_lost = false;
-				engine_data_str->KEYS->escape = true;
-			}
+		}
+		if(key_state[SDL_SCANCODE_ESCAPE] && engine_data_str->focus_lost && !engine_data_str->KEYS->escape){
+			SDL_ShowCursor(SDL_DISABLE);
+			SDL_SetRelativeMouseMode(SDL_TRUE);
+			SDL_SetWindowGrab(engine_data_str->SDL->window, SDL_TRUE);
+			engine_data_str->focus_lost = false;
+			engine_data_str->KEYS->escape = true;
 		}
 
 		if(engine_data_str->KEYS->escape){
