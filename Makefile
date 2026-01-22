@@ -8,8 +8,8 @@ CFLAGS_WIN = -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32 -g -Wall
 SDL_FLAGS_LINUX = $(shell sdl2-config --cflags --libs)
 SDL_FLAGS_WIN = $(shell /usr/x86_64-w64-mingw32/bin/sdl2-config --cflags --libs)
 
-LDFLAGS_LINUX = -rdynamic $(SDL_FLAGS_LINUX) -lm -lGLU -lGLEW -lOpenGL -lX11
-LDFLAGS_WIN = -lmingw32 $(SDL_FLAGS_WIN) -lmsvcrt -lglew32 -lopengl32 -lglu32
+LDFLAGS_LINUX = -rdynamic $(SDL_FLAGS_LINUX) -lm -lX11
+LDFLAGS_WIN = -lmingw32 $(SDL_FLAGS_WIN) -lmsvcrt
 
 # Source files
 SRC = zenithra_main zenithra_core zenithra_debug zenithra_movement zenithra_events zenithra_graphics zenithra_editor zenithra_interpreter zenithra_interpreter_commands

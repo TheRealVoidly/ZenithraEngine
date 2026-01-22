@@ -31,11 +31,6 @@ struct InEngineData* zenithra_init(int x, int y){
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "engine_data_str->SDL memmory alloc failed");
     }
 
-    engine_data_str->GL = malloc(sizeof(*engine_data_str->GL));
-    if(!engine_data_str->GL){
-        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "engine_data_str->GL memmory alloc failed");
-    }
-
     engine_data_str->MOVE = malloc(sizeof(*engine_data_str->MOVE));
     if(!engine_data_str->MOVE){
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "engine_data_str->MOVE memmory alloc failed");
@@ -64,13 +59,11 @@ struct InEngineData* zenithra_init(int x, int y){
 
     if(!zenithra_initialize_sdl(engine_data_str)){
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "Failed to initialize SDL");
+    }else{
+        zenithra_log_msg("SDL initialized successfully");
     }
 
-    if(!zenithra_initialize_opengl(engine_data_str)){
-        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "Failed to initialize OpenGL");
-    }else{
-        zenithra_log_msg("OpenGL initialized successfully");
-    }
+    zenithra_create_renderer_buffer(engine_data_str);
 
     zenithra_log_msg("Zenithra initialized successfully");
 
@@ -78,7 +71,7 @@ struct InEngineData* zenithra_init(int x, int y){
 }
 
 bool zenithra_initialize_sdl(struct InEngineData *engine_data_str){
-    if(SDL_Init(SDL_INIT_VIDEO) < 0){
+    if(SDL_Init(SDL_INIT_EVERYTHING) < 0){
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
 
@@ -105,18 +98,10 @@ bool zenithra_initialize_sdl(struct InEngineData *engine_data_str){
     if(engine_data_str->SDL->renderer == NULL){
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
+    SDL_GetRendererOutputSize(engine_data_str->SDL->renderer, &engine_data_str->renderer_x, &engine_data_str->renderer_y);
 
     SDL_GLContext context = SDL_GL_CreateContext(engine_data_str->SDL->window);
     if(!context){
-        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
-    }
-
-    glewExperimental = GL_TRUE;
-    GLenum glew_error = glewInit();
-    if(glew_error != GLEW_OK){
-        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, (const char*)glewGetErrorString(glew_error));
-    }
-    if(SDL_GL_SetSwapInterval(1) < 0){
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
 
@@ -139,8 +124,6 @@ void zenithra_destroy(struct InEngineData *engine_data_str){
     SDL_SetRelativeMouseMode(SDL_FALSE);
     SDL_SetWindowGrab(engine_data_str->SDL->window, SDL_FALSE);
 
-    glDeleteProgram(engine_data_str->GL->program_id);
-    glDeleteVertexArrays(1, &engine_data_str->GL->vertex_array_id);
     SDL_DestroyRenderer(engine_data_str->SDL->renderer);
     SDL_DestroyWindow(engine_data_str->SDL->window);
 
@@ -150,7 +133,6 @@ void zenithra_destroy(struct InEngineData *engine_data_str){
     zenithra_interpreter_free_variable_list((void*)&engine_data_str->INTERPRETER->iv);
     zenithra_free((void**)&engine_data_str->MOVE);
     zenithra_free((void**)&engine_data_str->SDL);
-    zenithra_free((void**)&engine_data_str->GL);
     zenithra_free((void**)&engine_data_str->INTERPRETER);
     zenithra_free((void**)&engine_data_str->KEYS);
     zenithra_free((void**)&engine_data_str);
@@ -174,23 +156,6 @@ void zenithra_critical_error_occured(struct InEngineData *engine_data_str, char*
     zenithra_log_msg("Error Is Critcal - Exiting Now");
     zenithra_destroy(engine_data_str);
     exit(1);
-}
-
-bool zenithra_initialize_opengl(struct InEngineData *engine_data_str){
-    glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-
-    glEnable(GL_MULTISAMPLE);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glDepthFunc(GL_LESS);
-    glCullFace(GL_BACK);
-
-    glGenVertexArrays(1, &engine_data_str->GL->vertex_array_id);
-    glBindVertexArray(engine_data_str->GL->vertex_array_id);
-
-    engine_data_str->GL->matrix_id = glGetUniformLocation(engine_data_str->GL->program_id, "mvp");
-
-    return true;
 }
 
 /**

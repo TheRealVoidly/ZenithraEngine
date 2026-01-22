@@ -29,21 +29,18 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
                 zenithra_update_position(engine_data_str);
             }
         }*/
+
+        RENDERER_BUF *next_in_line = engine_data_str->RENDERER_BUF;
+        while(next_in_line){
+            SDL_SetRenderDrawColor(engine_data_str->SDL->renderer, next_in_line->r, next_in_line->g, next_in_line->b, next_in_line->w);
+            SDL_RenderDrawPoint(engine_data_str->SDL->renderer, next_in_line->x, next_in_line->y);
+
+            next_in_line = next_in_line->next;
+        }
+
+
         program_should_quit = zenithra_handle_event_poll(engine_data_str);
 
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        //if(SDL_BUTTON(3) != mouse_button_pressed){
-        glUseProgram(0); 
-        glPointSize(3.0f);
-        glBegin(GL_POINTS);
-        glColor3f(1.0f, 0.0f, 0.0f);
-        glVertex2f(0.0f, 0.0f);
-        glEnd();
-        //}
-        glUseProgram(engine_data_str->GL->program_id);
-
-        SDL_GL_SwapWindow(engine_data_str->SDL->window);
+        SDL_RenderPresent(engine_data_str->SDL->renderer);
     }while(!program_should_quit);
 }

@@ -17,10 +17,6 @@
 #include<SDL2/SDL_rect.h>
 #include<SDL2/SDL_surface.h>
 
-#define GLEW_STATIC
-
-#include<GL/glew.h>
-#include<SDL2/SDL_opengl.h>
 #include<cglm/cglm.h>
 #include"zenithra_debug.h"
 
@@ -37,19 +33,24 @@
 #endif
 
 //-----------------------------------------------
-// Core
+// Graphics Structs
 //-----------------------------------------------
 
-typedef struct SDLEngineData{
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-}SDL;
+typedef struct EngineRendererBuffer{
+    int x;
+    int y;
 
-typedef struct GLEngineData{
-    GLuint program_id;
-    GLuint matrix_id;
-    GLuint vertex_array_id;
-}GL;
+    int r;
+    int g;
+    int b;
+    int w;
+
+    struct EngineRendererBuffer *next;
+}RENDERER_BUF;
+
+//-----------------------------------------------
+// Movement Structs
+//-----------------------------------------------
 
 typedef struct MovementEngineData{
     vec3 position;
@@ -67,10 +68,9 @@ typedef struct MovementEngineData{
     int x_pos, y_pos;
 }MOVE;
 
-typedef struct KeysEngineData{
-    bool escape;
-    bool r_shift;
-}KEYS;
+//-----------------------------------------------
+// Interpreter Structs
+//-----------------------------------------------
 
 struct InterpreterVariable{
     char variable_name[1024];
@@ -88,20 +88,41 @@ typedef struct ReadData{
     struct InterpreterVariable *iv;
 }INTERPRETER;
 
+//-----------------------------------------------
+// Core Structs
+//-----------------------------------------------
+
+typedef struct SDLEngineData{
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+}SDL;
+
+typedef struct KeysEngineData{
+    bool escape;
+    bool r_shift;
+}KEYS;
+
 struct InEngineData{
     MOVE *MOVE;
     SDL *SDL;   
-    GL *GL;
     KEYS *KEYS;
     INTERPRETER *INTERPRETER;
+    RENDERER_BUF *RENDERER_BUF;
 
     float delta_time;
 
     int window_x;
     int window_y;
 
+    int renderer_x;
+    int renderer_y;
+
     bool focus_lost;
 };
+
+//-----------------------------------------------
+// Core Funcs
+//-----------------------------------------------
 
 #ifndef WIN32 // If not on Windows define a function for reading from console input. If on windows such fuction is provided from a header
 int _kbhit();
@@ -112,13 +133,12 @@ void zenithra_free(void **pp);
 struct InEngineData* zenithra_init(int x, int y);
 void zenithra_destroy(struct InEngineData *engine_data_str);
 void zenithra_critical_error_occured(struct InEngineData *engine_data_str, char* file_name, int line, const char* error);
-bool zenithra_initialize_opengl(struct InEngineData *engine_data_str);
 bool zenithra_initialize_sdl(struct InEngineData *engine_data_str);
 void zenithra_init_keys(struct InEngineData *engine_data_str);
 void zenithra_disable_bypass_compositor(SDL_Window *window);
 
 //-----------------------------------------------
-// Movement
+// Movement Funcs
 //-----------------------------------------------
 
 void zenithra_init_movement_vals(struct InEngineData *engine_data_str);
@@ -126,19 +146,19 @@ void zenithra_calc_mouse_movement(struct InEngineData *engine_data_str);
 void zenithra_update_position(struct InEngineData *engine_data_str);
 
 //-----------------------------------------------
-// Events
+// Events Funcs
 //-----------------------------------------------
 
 bool zenithra_handle_event_poll(struct InEngineData *engine_data_str);
 
 //-----------------------------------------------
-// Graphics
+// Graphics Funcs
 //-----------------------------------------------
 
-
+void zenithra_create_renderer_buffer(struct InEngineData *engine_data_str);
 
 //-----------------------------------------------
-// Editor
+// Editor Funcs
 //-----------------------------------------------
 
 #define START_OF_OBJECT_INDEX 1
@@ -146,7 +166,7 @@ bool zenithra_handle_event_poll(struct InEngineData *engine_data_str);
 int* zenithra_object_ray_intersects_detection(float origin[3], struct InEngineData *engine_data_str);
 
 //-----------------------------------------------
-// Interpreter
+// Interpreter Funcs
 //-----------------------------------------------
 
 void zenithra_interpreter_begin(struct InEngineData *engine_data_str);
@@ -160,12 +180,13 @@ struct InterpreterVariable* zenithra_interpreter_create_variable_node();
 struct InterpreterVariable* zenithra_interpreter_match_variable_name(struct InEngineData *engine_data_str, char *variable_name);
 
 //-----------------------------------------------
-// Interpreter commands
+// Interpreter commands Funcs
 //-----------------------------------------------
 
 void zenithra_interpreter_command_register_variable(struct InEngineData *engine_data_str, char *file_name);
 void zenithra_interpreter_command_call_script(struct InEngineData *engine_data_str, char *file_name);
 void zenithra_interpreter_update_variable(struct InEngineData *engine_data_str, char *file_name);
+
 
 //-----------------------------------------------
 // Deprecated
