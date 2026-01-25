@@ -36,7 +36,7 @@
 // Graphics Structs
 //-----------------------------------------------
 
-typedef struct EngineRendererBuffer{
+typedef struct RendererBuffer{
     int x;
     int y;
 
@@ -45,7 +45,7 @@ typedef struct EngineRendererBuffer{
     int b;
     int w;
 
-    struct EngineRendererBuffer *next;
+    struct RendererBuffer *next;
 }RENDERER_BUF;
 
 //-----------------------------------------------
@@ -53,19 +53,18 @@ typedef struct EngineRendererBuffer{
 //-----------------------------------------------
 
 typedef struct MovementEngineData{
-    vec3 position;
-    vec3 direction_look;
-    vec3 direction_strafe;
-    vec3 direction_vertical;
+    double cam_x;
+    double cam_y;
+    double cam_z;
 
-    float horizontal_angle;
-    float vertical_angle;
-    float fov;
-    float speed;
-    float mouse_speed;
-    float gravity;
+    float cam_facing_horizontal_angle;
+    float cam_facing_vertical_angle;
 
-    int x_pos, y_pos;
+    int vFOV;
+    int hFOV;
+
+    double z_near;
+    double z_far;
 }MOVE;
 
 //-----------------------------------------------
@@ -108,8 +107,6 @@ struct InEngineData{
     KEYS *KEYS;
     INTERPRETER *INTERPRETER;
     RENDERER_BUF *RENDERER_BUF;
-
-    float delta_time;
 
     int window_x;
     int window_y;

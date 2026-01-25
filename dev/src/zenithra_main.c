@@ -15,27 +15,49 @@ int main(int argc, char *argv[]){
 void zenithra_test_editor(struct InEngineData *engine_data_str){
     bool program_should_quit = false;
     Uint64 last_frame_time = 0, current_frame_time = 0;
+    float delta_time;
 
     do{
         last_frame_time = current_frame_time;
         current_frame_time = SDL_GetPerformanceCounter();
-        engine_data_str->delta_time = (double)((current_frame_time - last_frame_time) * 1000 / (double)SDL_GetPerformanceFrequency());
+        delta_time = (double)((current_frame_time - last_frame_time) * 1000 / (double)SDL_GetPerformanceFrequency());
 
-        /*Uint32 mouse_button_pressed = SDL_GetMouseState(NULL, NULL);
-        if(!engine_data_str->focus_lost){
-            zenithra_calc_mouse_movement(engine_data_str);
 
-            if(SDL_BUTTON(3) == mouse_button_pressed){
-                zenithra_update_position(engine_data_str);
+        int test_x[10000];
+        int test_y[10000];
+
+        int l = 0;
+
+
+
+        for(int x = -10; x <= 10; x++){
+            for(float z = 0.1; z <= 2; z = z + 0.1){
+                test_x[l] = (((((-1.0f * ((float)x - engine_data_str->MOVE->cam_x)) * 0.01f) / (-1.0f * (z - engine_data_str->MOVE->cam_z))) + 1.0f) / 2.0f) * engine_data_str->renderer_x;
+                test_y[l] = (((((-1.0f * (0.1f - engine_data_str->MOVE->cam_y)) * 0.01f) / (-1.0f * (z - engine_data_str->MOVE->cam_z))) + 1.0f) / 2.0f) * engine_data_str->renderer_y;
+
+                l++;
             }
-        }*/
+        }
 
-        RENDERER_BUF *next_in_line = engine_data_str->RENDERER_BUF;
-        while(next_in_line){
-            SDL_SetRenderDrawColor(engine_data_str->SDL->renderer, next_in_line->r, next_in_line->g, next_in_line->b, next_in_line->w);
-            SDL_RenderDrawPoint(engine_data_str->SDL->renderer, next_in_line->x, next_in_line->y);
+        int max = l;
+        RENDERER_BUF *node = engine_data_str->RENDERER_BUF;
+        while(node){
+            for(l = 0; l < max; l++){
+                if(test_x[l] == node->x && test_y[l] == node->y){
+                    node->r = 255;
+                }
+            }
 
-            next_in_line = next_in_line->next;
+            node = node->next;
+        }
+
+
+        node = engine_data_str->RENDERER_BUF;
+        while(node){
+            SDL_SetRenderDrawColor(engine_data_str->SDL->renderer, node->r, node->g, node->b, node->w);
+            SDL_RenderDrawPoint(engine_data_str->SDL->renderer, node->x, node->y);
+
+            node = node->next;
         }
 
 
