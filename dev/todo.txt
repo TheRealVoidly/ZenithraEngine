@@ -2,6 +2,10 @@
 TODO
 -------------------------------------------------------
 
+-- Destroy the renderer buffer properly
+
+-- Add function for drawing lines between points, just find the shortest most direct path in screen space
+
 -- In script files make it so NULL represents the value NULL
 
 -- Fix the focus loss logic in events - a bit clunky when holding escape

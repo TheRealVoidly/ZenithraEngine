@@ -33,12 +33,11 @@
 #endif
 
 //-----------------------------------------------
-// Graphics Structs
+// Graphics Structs and Defs
 //-----------------------------------------------
 
 typedef struct RendererBuffer{
-    int x;
-    int y;
+    SDL_Point *points;
 
     int r;
     int g;
@@ -53,18 +52,18 @@ typedef struct RendererBuffer{
 //-----------------------------------------------
 
 typedef struct MovementEngineData{
-    double cam_x;
-    double cam_y;
-    double cam_z;
+    double cam_X;
+    double cam_Y;
+    double cam_Z;
 
-    float cam_facing_horizontal_angle;
-    float cam_facing_vertical_angle;
+    float cam_yaw; //Rotates around Y-axis
+    float cam_pitch; //Rotates around X-axis
 
     int vFOV;
     int hFOV;
 
-    double z_near;
-    double z_far;
+    double Z_near;
+    double Z_far;
 }MOVE;
 
 //-----------------------------------------------
@@ -108,11 +107,11 @@ struct InEngineData{
     INTERPRETER *INTERPRETER;
     RENDERER_BUF *RENDERER_BUF;
 
-    int window_x;
-    int window_y;
+    int window_X;
+    int window_Y;
 
-    int renderer_x;
-    int renderer_y;
+    int renderer_X;
+    int renderer_Y;
 
     bool focus_lost;
 };
@@ -127,7 +126,7 @@ int _kbhit();
 
 void zenithra_signal_catch(int n);
 void zenithra_free(void **pp);
-struct InEngineData* zenithra_init(int x, int y);
+struct InEngineData* zenithra_init(int X, int Y);
 void zenithra_destroy(struct InEngineData *engine_data_str);
 void zenithra_critical_error_occured(struct InEngineData *engine_data_str, char* file_name, int line, const char* error);
 bool zenithra_initialize_sdl(struct InEngineData *engine_data_str);
@@ -153,6 +152,9 @@ bool zenithra_handle_event_poll(struct InEngineData *engine_data_str);
 //-----------------------------------------------
 
 void zenithra_create_renderer_buffer(struct InEngineData *engine_data_str);
+void zenithra_check_and_save_for_rendering(struct InEngineData *engine_data_str, double Xw, double Yw, double Zw);
+void zenithra_draw_points(struct InEngineData *engine_data_str);
+void zenithra_draw_lines(struct InEngineData *engine_data_str);
 
 //-----------------------------------------------
 // Editor Funcs
