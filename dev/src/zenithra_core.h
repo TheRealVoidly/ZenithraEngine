@@ -37,7 +37,7 @@ extern int GAME_DIMENSIONALITY; //2 = 2D, 3 = 3D, default 3
 #endif
 
 //-----------------------------------------------
-// Graphics Structs
+// Graphics Structs and Defs
 //-----------------------------------------------
 
 struct TempNormCoords{
@@ -77,19 +77,18 @@ typedef struct ObjectList{
 //-----------------------------------------------
 
 typedef struct MovementEngineData{
-    vec3 position;
-    vec3 direction_look;
-    vec3 direction_strafe;
-    vec3 direction_vertical;
+    double cam_X;
+    double cam_Y;
+    double cam_Z;
 
-    float horizontal_angle;
-    float vertical_angle;
-    float fov;
-    float speed;
-    float mouse_speed;
-    float gravity;
+    float cam_yaw; //Rotates around Y-axis
+    float cam_pitch; //Rotates around X-axis
 
-    int x_pos, y_pos;
+    int vFOV;
+    int hFOV;
+
+    double Z_near;
+    double Z_far;
 }MOVE;
 
 //-----------------------------------------------

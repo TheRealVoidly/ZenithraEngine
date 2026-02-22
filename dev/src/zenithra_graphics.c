@@ -24,7 +24,7 @@ void zenithra_create_point_buffer(struct InEngineData *engine_data_str){
 		node->X = i % engine_data_str->renderer_X; //Pixel #X left -> right
 		node->Y = i / engine_data_str->renderer_X; //Pixel #Y up -> down
 
-		node->r = 0;
+		node->r = 0; //Initialize all pixels as black
 		node->g = 0;
 		node->b = 0;
 		node->w = 255;

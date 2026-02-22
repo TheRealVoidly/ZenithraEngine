@@ -18,11 +18,12 @@ int main(int argc, char *argv[]){
 void zenithra_test_editor(struct InEngineData *engine_data_str){
     bool program_should_quit = false;
     Uint64 last_frame_time = 0, current_frame_time = 0;
+    float delta_time;
 
     do{
         last_frame_time = current_frame_time;
         current_frame_time = SDL_GetPerformanceCounter();
-        engine_data_str->delta_time = (double)((current_frame_time - last_frame_time) * 1000 / (double)SDL_GetPerformanceFrequency());
+        delta_time = (double)((current_frame_time - last_frame_time) * 1000 / (double)SDL_GetPerformanceFrequency());
 
         zenithra_draw(engine_data_str);
 

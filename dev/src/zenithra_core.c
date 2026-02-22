@@ -20,7 +20,7 @@ int GAME_DIMENSIONALITY = 3;
  * @note If initialization fails at any point, zenithra_critical_error_occured is called, and the program will terminate.
 **/
 
-struct InEngineData* zenithra_init(int x, int y){
+struct InEngineData* zenithra_init(int X, int Y){
     signal(SIGSEGV, zenithra_signal_catch);
     zenithra_log_init();
     
@@ -58,8 +58,8 @@ struct InEngineData* zenithra_init(int x, int y){
     zenithra_init_movement_vals(engine_data_str);
     zenithra_init_keys(engine_data_str);
 
-    engine_data_str->window_x = x;
-    engine_data_str->window_y = y;
+    engine_data_str->window_X = X;
+    engine_data_str->window_Y = Y;
 
     DEV_CONSOLE_CREATE; //Creates developer console if DEV_MODE is true. Only on Windows
 
@@ -97,7 +97,7 @@ bool zenithra_initialize_sdl(struct InEngineData *engine_data_str){
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
-    engine_data_str->SDL->window = SDL_CreateWindow("Zenithra Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, engine_data_str->window_x, engine_data_str->window_y, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+    engine_data_str->SDL->window = SDL_CreateWindow("Zenithra Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, engine_data_str->window_X, engine_data_str->window_Y, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
     if(engine_data_str->SDL->window == NULL){
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
@@ -106,7 +106,7 @@ bool zenithra_initialize_sdl(struct InEngineData *engine_data_str){
     if(engine_data_str->SDL->renderer == NULL){
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
-    SDL_GetRendererOutputSize(engine_data_str->SDL->renderer, &engine_data_str->renderer_x, &engine_data_str->renderer_y);
+    SDL_GetRendererOutputSize(engine_data_str->SDL->renderer, &engine_data_str->renderer_X, &engine_data_str->renderer_Y);
 
     SDL_GLContext context = SDL_GL_CreateContext(engine_data_str->SDL->window);
     if(!context){
