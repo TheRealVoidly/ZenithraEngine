@@ -135,8 +135,6 @@ struct InEngineData{
 
     int obj_number;
 
-    float delta_time;
-
     int window_X;
     int window_Y;
 
