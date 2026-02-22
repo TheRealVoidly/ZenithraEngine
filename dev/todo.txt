@@ -4,8 +4,4 @@ TODO
 
 -- In script files make it so NULL represents the value NULL
 
--- Fix the focus loss logic in events - a bit clunky when holding escape
-
--- Add memory usage counter
-
 -- Make it so that incorrect usage of command in .zen files doesn't cause undefined behaviour (terminate command on \n)
