@@ -13,11 +13,11 @@ void zenithra_register_callback(struct InEngineData *engine_data_str, char *call
 **/
 
 void zenithra_interpreter_begin(struct InEngineData *engine_data_str){
-	engine_data_str->INTERPRETER->command = malloc(sizeof(char) * 256);
+	engine_data_str->INTERPRETER->command = zenithra_malloc(engine_data_str, sizeof(char) * 256);
 	memset(engine_data_str->INTERPRETER->command, 0, 256);
 	engine_data_str->INTERPRETER->offset = 0;
 
-	engine_data_str->INTERPRETER->iv = zenithra_interpreter_create_variable_node();
+	engine_data_str->INTERPRETER->iv = zenithra_interpreter_create_variable_node(engine_data_str);
 	memset(engine_data_str->INTERPRETER->iv->variable_name, 0, 1024);
 
 	zenithra_read_command(engine_data_str, NULL);
@@ -34,7 +34,7 @@ void zenithra_interpreter_begin(struct InEngineData *engine_data_str){
  * 
  * @param engine_data_str
  * @param obj
- * @param file_name = if NULL default to entry.zen
+ * @param file_name if NULL default to entry.zen
 **/
 
 void zenithra_interpreter_run_through(struct InEngineData *engine_data_str, char *file_name){
@@ -75,7 +75,7 @@ void zenithra_interpreter_loop(struct InEngineData *engine_data_str){
  * This function retrieves commands word by word
  * 
  * @param engine_data_str
- * @param file_name = If NULL default open entry.zen
+ * @param file_name if NULL default open entry.zen
 **/
 
 void zenithra_read_command(struct InEngineData *engine_data_str, char *file_name){
@@ -107,7 +107,7 @@ void zenithra_read_command(struct InEngineData *engine_data_str, char *file_name
  * 
  * @param engine_data_str
  * @param obj
- * @param file_name = Name of script, NULL == entry.zen
+ * @param file_name name of script, NULL == entry.zen
 **/
 
 void zenithra_interpreter_check_commands(struct InEngineData *engine_data_str, char *file_name){
@@ -132,7 +132,7 @@ void zenithra_interpreter_check_commands(struct InEngineData *engine_data_str, c
  * Matches input variable to variable list
  * 
  * @param engine_data_str
- * @param variable_name = input variable that we want to match
+ * @param variable_name input variable that we want to match
  * @return valid node containing matched variable name, otherwise if no variable was found return NULL
 **/
 
@@ -150,22 +150,22 @@ struct InterpreterVariable* zenithra_interpreter_match_variable_name(struct InEn
 	return NULL;
 }
 
-void zenithra_interpreter_free_variable_list(struct InterpreterVariable **head){
+void zenithra_interpreter_free_variable_list(struct InEngineData *engine_data_str, struct InterpreterVariable **head){
 	struct InterpreterVariable *current = *head;
 	struct InterpreterVariable *next;
 	int i = 0;
 
 	while(current){
 		next = current->next;
-		zenithra_free((void**)&current);
+		zenithra_free(engine_data_str, (void**)&current, sizeof *current);
 		current = next;
 	}
 
 	*head = NULL;
 }
 
-struct InterpreterVariable* zenithra_interpreter_create_variable_node(){
-	struct InterpreterVariable *node = malloc(sizeof(struct InterpreterVariable));
+struct InterpreterVariable* zenithra_interpreter_create_variable_node(struct InEngineData *engine_data_str){
+	struct InterpreterVariable *node = zenithra_malloc(engine_data_str, sizeof(struct InterpreterVariable));
 	if(!node){
 		zenithra_log_err(__FILE__, __LINE__, "Node memory allocation failed");
 		return NULL;

@@ -14,7 +14,7 @@ void zenithra_interpreter_command_register_variable(struct InEngineData *engine_
 	while(node->next){
 		node = node->next;
 	}
-	node->next = zenithra_interpreter_create_variable_node();
+	node->next = zenithra_interpreter_create_variable_node(engine_data_str);
 	strcpy(node->next->variable_name, name);
 
 	node->next->f_value = atof(value);

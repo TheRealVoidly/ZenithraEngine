@@ -4,6 +4,9 @@
 void zenithra_test_editor(struct InEngineData *engine_data_str);
 
 int main(int argc, char *argv[]){
+    DEV_MODE = true;
+    GAME_DIMENSIONALITY = 2;
+
     struct InEngineData *engine_data_str = zenithra_init(1200, 700);
 
     zenithra_test_editor(engine_data_str);
@@ -22,16 +25,12 @@ void zenithra_test_editor(struct InEngineData *engine_data_str){
         current_frame_time = SDL_GetPerformanceCounter();
         delta_time = (double)((current_frame_time - last_frame_time) * 1000 / (double)SDL_GetPerformanceFrequency());
 
-        for(double i = 0.0; i < 100.0; i++){
-            for(double j = 0.0; j < 10.0; j++){
-                zenithra_check_and_save_for_rendering(engine_data_str, i, 0.0, j);
-            }
-        }
-
-        zenithra_draw_points(engine_data_str);
+        zenithra_draw(engine_data_str);
 
         program_should_quit = zenithra_handle_event_poll(engine_data_str);
 
         SDL_RenderPresent(engine_data_str->SDL->renderer);
+
+        zenithra_check_and_display_memory_change(engine_data_str);
     }while(!program_should_quit);
 }

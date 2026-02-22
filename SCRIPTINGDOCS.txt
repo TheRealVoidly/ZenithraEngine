@@ -19,7 +19,7 @@ test_command param1 param2 ... -> output
 
 # Variables will be registered like this
 register_variable x value
-# Each variable is of type float so integers work as well as floats
+# Each variable is of type float
 # Variables are shared across all scripts
 
 # This is going to register a "callback"
