@@ -80,20 +80,37 @@ void zenithra_interpreter_loop(struct InEngineData *engine_data_str){
 
 void zenithra_read_command(struct InEngineData *engine_data_str, char *file_name){
 	memset(engine_data_str->INTERPRETER->command, 0, 256);
+
+	#ifdef __linux__
 	int fd;
 	if(!file_name){
 		fd = open("./gamedata/scripts/entry.zen", O_RDONLY, 0644);
 	}else{
 		fd = open(file_name, O_RDONLY, 0644);
 	}
-	char c;
+	#else
+	HANDLE fh;
+	fh = CreateFile(file_name, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
+	#endif
+
+	char c = 0;
 	int n = 0;
 
 	while(1){
+
+		#ifdef __linux__
 		engine_data_str->INTERPRETER->fval = pread(fd, &c, 1, engine_data_str->INTERPRETER->offset);
+		#else
+		ReadFile(fh, &c, 1, NULL, NULL);
+		#endif
+
 		engine_data_str->INTERPRETER->offset++;
 		if(engine_data_str->INTERPRETER->fval == 0 || c == '\n' || c == ' '){
+			
+			#ifdef __linux__
 			close(fd);
+			#endif
+
 			return;
 		}
 
@@ -153,7 +170,6 @@ struct InterpreterVariable* zenithra_interpreter_match_variable_name(struct InEn
 void zenithra_interpreter_free_variable_list(struct InEngineData *engine_data_str, struct InterpreterVariable **head){
 	struct InterpreterVariable *current = *head;
 	struct InterpreterVariable *next;
-	int i = 0;
 
 	while(current){
 		next = current->next;

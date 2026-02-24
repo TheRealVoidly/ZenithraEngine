@@ -1,10 +1,7 @@
 #include"zenithra_core.h"
 #include<signal.h>
-#include<stddef.h>
-#include<stdio.h>
 
 bool DEV_MODE = false;
-int GAME_DIMENSIONALITY = 3;
 
 /**
  * Initializes the engine.
@@ -21,7 +18,10 @@ int GAME_DIMENSIONALITY = 3;
 **/
 
 struct InEngineData* zenithra_init(int X, int Y){
-    signal(SIGSEGV, zenithra_signal_catch);
+    signal(SIGSEGV, zenithra_signal_handle);
+    signal(SIGINT, zenithra_signal_handle);
+    signal(SIGTERM, zenithra_signal_handle);
+
     zenithra_log_init();
     
     struct InEngineData *engine_data_str = malloc(sizeof *engine_data_str);
@@ -113,7 +113,10 @@ bool zenithra_initialize_sdl(struct InEngineData *engine_data_str){
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
 
+    #ifdef __linux__
     zenithra_disable_bypass_compositor(engine_data_str->SDL->window);
+    #endif
+
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
     return true;
@@ -195,43 +198,38 @@ void zenithra_free(struct InEngineData *engine_data_str, void **pp, size_t size)
 }
 
 /**
- * Signal catch functions
- * @param n signal
+ * Signal handler function
+ * @param sig signal
 **/
 
-#ifdef _WIN32
-void zenithra_signal_catch(int n){
-    switch(n){
-    case SIGSEGV:
-        int fd = open("./dev/zenithra_log.txt", O_APPEND | O_WRONLY | O_CREAT, 0644);
-        char *t_buffer = zenithra_get_time();
-        write(fd, t_buffer, strlen(t_buffer));
-        free(t_buffer);
-        write(fd, "SIGSEGV", strlen("SIGSEGV"));
-        write(STDOUT_FILENO, "SIGSEGV\n", sizeof("SIGSEGV\n"));
-        close(fd);
-        _exit(1);
-        break;
-    }
-}
-#else
-void zenithra_signal_catch(int n){
+void zenithra_signal_handle(int sig){
+    char *t_buffer;
+    int fd;
+
+    #ifdef __linux__
     void *buffer[15];
     char **callstack;
+    int frames;
+    int i;
+    #endif
 
-    int frames = backtrace(buffer, 15);
-    callstack = backtrace_symbols(buffer, frames);
-
-    int fd = open("./dev/zenithra_log.txt", O_APPEND | O_WRONLY | O_CREAT, 0644);
-
-    for(int i = frames - 1; i > 0; i--){
-        write(fd, callstack[i], strlen(callstack[i]));
-        write(fd, "\n", strlen("\n"));
-    }
-
-    char *t_buffer;
-    switch(n){
+    switch(sig){
     case SIGSEGV:
+
+        #ifdef __linux__
+        frames = backtrace(buffer, 15);
+        callstack = backtrace_symbols(buffer, frames);
+
+        fd = open("./dev/zenithra_log.txt", O_APPEND | O_WRONLY | O_CREAT, 0644);
+
+        for(i = frames - 1; i > 0; i--){
+            write(fd, callstack[i], strlen(callstack[i]));
+            write(fd, "\n", strlen("\n"));
+        }
+        #else
+        fd = open("./dev/zenithra_log.txt", O_APPEND | O_WRONLY | O_CREAT, 0644);
+        #endif
+
         t_buffer = zenithra_get_time();
         write(fd, t_buffer, strlen(t_buffer));
         free(t_buffer);
@@ -240,9 +238,13 @@ void zenithra_signal_catch(int n){
         close(fd);
         _exit(1);
         break;
+
+    case SIGINT:
+    case SIGTERM:
+        program_should_quit = true;
+        break;
     }
 }
-#endif
 
 void zenithra_init_keys(struct InEngineData *engine_data_str){
     engine_data_str->KEYS->escape = false;
@@ -287,6 +289,7 @@ void zenithra_disable_bypass_compositor(SDL_Window *window){
         XFlush(display);
     }
 }
+
 #endif
 
 /**

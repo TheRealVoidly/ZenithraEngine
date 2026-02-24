@@ -2,8 +2,7 @@
 
 bool zenithra_handle_event_poll(struct InEngineData *engine_data_str){
 	SDL_Event event;
-	bool program_should_quit = false;
-	const Uint8* key_state = SDL_GetKeyboardState(NULL);
+	SDL_GetKeyboardState(NULL);
 
 	while(SDL_PollEvent(&event)){
 		if(event.type == SDL_QUIT){

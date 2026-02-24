@@ -1,11 +1,12 @@
 #include"zenithra_core.h"
 #include"zenithra_debug.h"
 
+bool program_should_quit = false;
+
 void zenithra_test_editor(struct InEngineData *engine_data_str);
 
 int main(int argc, char *argv[]){
     DEV_MODE = true;
-    GAME_DIMENSIONALITY = 2;
 
     struct InEngineData *engine_data_str = zenithra_init(1200, 700);
 
@@ -16,15 +17,8 @@ int main(int argc, char *argv[]){
 }
 
 void zenithra_test_editor(struct InEngineData *engine_data_str){
-    bool program_should_quit = false;
-    Uint64 last_frame_time = 0, current_frame_time = 0;
-    float delta_time;
-
+    zenithra_render_object(engine_data_str, zenithra_load_object(engine_data_str, "cube.zbj"));
     do{
-        last_frame_time = current_frame_time;
-        current_frame_time = SDL_GetPerformanceCounter();
-        delta_time = (double)((current_frame_time - last_frame_time) * 1000 / (double)SDL_GetPerformanceFrequency());
-
         zenithra_draw(engine_data_str);
 
         program_should_quit = zenithra_handle_event_poll(engine_data_str);

@@ -1,5 +1,4 @@
 #include"zenithra_core.h"
-#include <stdio.h>
 
 /**
  * Creates the renderer buffer
@@ -89,11 +88,11 @@ struct TempNormCoords* zenithra_normalize_vertice(struct InEngineData *engine_da
 
 	if(Z_cam < engine_data_str->MOVE->Z_near){
         //Point is between camerra and the near plane
-		return NULL;
+		//return NULL;
 	}
 	if(Z_cam > engine_data_str->MOVE->Z_far){
         //Point is behind the far plane
-		return NULL;
+		//return NULL;
 	}
 
     double max_X_at_Z = Z_cam / tan((90.0 - engine_data_str->MOVE->hFOV / 2.0) * M_PI / 180.0); //Find maximum visible X at Z_cam
@@ -101,7 +100,7 @@ struct TempNormCoords* zenithra_normalize_vertice(struct InEngineData *engine_da
 
     if(X_cam < -max_X_at_Z || X_cam > max_X_at_Z || Y_cam < -max_Y_at_Z || Y_cam > max_Y_at_Z){
         // Point is outside FOV
-    	return NULL;
+    	//return NULL;
     }
 
     struct TempNormCoords *temp_norm_coords = NULL;
@@ -120,7 +119,8 @@ struct TempNormCoords* zenithra_normalize_vertice(struct InEngineData *engine_da
 **/
 
 void zenithra_save_points_for_rendering(struct InEngineData *engine_data_str, double Xw, double Yw, double Zw){
-	struct TempNormCoords *temp_norm_coords = zenithra_normalize_vertice(engine_data_str, Xw, Yw, Zw);
+	struct TempNormCoords *temp_norm_coords;
+	temp_norm_coords = zenithra_normalize_vertice(engine_data_str, Xw, Yw, Zw);
 
     int screen_X = (int)round(temp_norm_coords->norm_X * engine_data_str->renderer_X); //Map to screen pixels
     int screen_Y = (int)round(temp_norm_coords->norm_Y * engine_data_str->renderer_Y);
@@ -141,8 +141,35 @@ void zenithra_save_points_for_rendering(struct InEngineData *engine_data_str, do
  * Creates a single triangular face on normalized screen space
 **/
 
-void zenithra_make_triangle_face_set(struct InEngineData *engine_data_str){
-	//SDL_RenderGeometry(engine_data_str->SDL->renderer, NULL, const SDL_Vertex *vertices, 3, NULL, 0);
+void zenithra_render_object(struct InEngineData *engine_data_str, int index){
+	for(int i = 0; i < engine_data_str->ZBJ_LIST[index].face->size / sizeof *engine_data_str->ZBJ_LIST[index].face; i += 3){
+		SDL_Vertex *vertices = zenithra_malloc(engine_data_str, 3 * sizeof *vertices);
+
+		struct TempNormCoords *temp_norm_coords;
+		temp_norm_coords = zenithra_normalize_vertice(engine_data_str, engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i].f1].x, engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i].f2].y, engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i].f3].z);
+		printf("%f\n", engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i+2].f1].x);
+		printf("%f\n", engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i+2].f2].y);
+		printf("%f\n", engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i+2].f3].z);
+		vertices[0].position.x = (float)temp_norm_coords->norm_X;
+		vertices[0].position.y = (float)temp_norm_coords->norm_Y;
+		vertices[0].color.r = 255;
+		zenithra_free(engine_data_str, (void**)&temp_norm_coords, sizeof *temp_norm_coords);
+
+		temp_norm_coords = zenithra_normalize_vertice(engine_data_str, engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i+1].f1].x, engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i+1].f2].y, engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i+1].f3].z);
+		vertices[1].position.x = (float)temp_norm_coords->norm_X;
+		vertices[1].position.y = (float)temp_norm_coords->norm_Y;
+		vertices[1].color.r = 255;
+		zenithra_free(engine_data_str, (void**)&temp_norm_coords, sizeof *temp_norm_coords);
+
+		temp_norm_coords = zenithra_normalize_vertice(engine_data_str, engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i+2].f1].x, engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i+2].f2].y, engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i+2].f3].z);
+		vertices[2].position.x = (float)temp_norm_coords->norm_X;
+		vertices[2].position.y = (float)temp_norm_coords->norm_Y;
+		vertices[2].color.r = 255;
+		zenithra_free(engine_data_str, (void**)&temp_norm_coords, sizeof *temp_norm_coords);
+
+		SDL_RenderGeometry(engine_data_str->SDL->renderer, NULL, vertices, 3, NULL, 0);
+		zenithra_free(engine_data_str, (void**)&vertices, 3 * sizeof *vertices);
+	}
 }
 
 /**
@@ -322,7 +349,6 @@ void zenithra_destroy_object(struct InEngineData *engine_data_str, int index){
 			zenithra_free(engine_data_str, (void**)&engine_data_str->ZBJ_LIST[index].vertice, engine_data_str->ZBJ_LIST[index].vertice->size);
 
 			for(int i = index; i < engine_data_str->obj_number; i++){
-
 				if(i + 1 < engine_data_str->obj_number){
 					engine_data_str->ZBJ_LIST[i] = engine_data_str->ZBJ_LIST[i + 1];
 				}

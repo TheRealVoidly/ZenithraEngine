@@ -29,10 +29,10 @@ windows: $(OBJ_WIN)
 	$(CC_WIN) $(CFLAGS_WIN) $(OBJ_WIN) -o main.exe $(LDFLAGS_WIN)
 
 # Pattern rules
-$(SRC_DIR)/%.o: $(SRC_DIR)/%.c $(SRC_DIR)/zenithra_core.h $(SRC_DIR)/zenithra_debug.h $(SRC_DIR)/vertex_shader.h $(SRC_DIR)/fragment_shader.h
+$(SRC_DIR)/%.o: $(SRC_DIR)/%.c $(SRC_DIR)/zenithra_core.h $(SRC_DIR)/zenithra_debug.h
 	$(CC_LINUX) -c $< -o $@
 
-$(SRC_DIR)/%_windows.o: $(SRC_DIR)/%.c $(SRC_DIR)/zenithra_core.h $(SRC_DIR)/zenithra_debug.h $(SRC_DIR)/vertex_shader.h $(SRC_DIR)/fragment_shader.h
+$(SRC_DIR)/%_windows.o: $(SRC_DIR)/%.c $(SRC_DIR)/zenithra_core.h $(SRC_DIR)/zenithra_debug.h
 	$(CC_WIN) $(CFLAGS_WIN) -c $< -o $@
 
 # Clean

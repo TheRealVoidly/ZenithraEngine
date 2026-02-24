@@ -1,15 +1,15 @@
-#include <stddef.h>
-#ifdef _WIN32
-    #include<windows.h>
-    #include<stdio.h>
-    #include<stdlib.h>
-    #include<conio.h>
-#else
+#ifdef __linux__
     #include<X11/Xlib.h>
     #include<X11/Xatom.h>
     #include<SDL2/SDL_syswm.h>
     #include<execinfo.h>
     #include<unistd.h>
+#else
+    #include<windows.h>
+    #include<stdio.h>
+    #include<stdlib.h>
+    #include<conio.h>
+    #include<fileapi.h>
 #endif
 #include<SDL2/SDL.h>
 #include<SDL2/SDL_render.h>
@@ -19,12 +19,13 @@
 #include<SDL2/SDL_surface.h>
 #include<SDL2/SDL_scancode.h>
 
+#include<stddef.h>
 #include<cglm/cglm.h>
 #include"zenithra_debug.h"
 
 //These have to be set before zenithra_init()
 extern bool DEV_MODE; //Set as true if creating a console (on Windows) is desired along-side dev statistics like memory usage, default false
-extern int GAME_DIMENSIONALITY; //2 = 2D, 3 = 3D, default 3
+extern bool program_should_quit;
 
 #ifdef _WIN32
     #if DEV_MODE
@@ -154,7 +155,7 @@ struct InEngineData{
 int _kbhit();
 #endif
 
-void zenithra_signal_catch(int n);
+void zenithra_signal_handle(int sig);
 void zenithra_free(struct InEngineData *engine_data_str, void **pp, size_t size);
 struct InEngineData* zenithra_init(int X, int Y);
 void zenithra_destroy(struct InEngineData *engine_data_str);
@@ -191,6 +192,7 @@ int zenithra_load_object(struct InEngineData *engine_data_str, char *file_name);
 void zenithra_destroy_object(struct InEngineData *engine_data_str, int index);
 struct TempNormCoords* zenithra_normalize_vertice(struct InEngineData *engine_data_str, double Xw, double Yw, double Zw);
 void zenithra_destroy_point_buffer(struct InEngineData *engine_data_str);
+void zenithra_render_object(struct InEngineData *engine_data_str, int index);
 
 //-----------------------------------------------
 // Editor Funcs

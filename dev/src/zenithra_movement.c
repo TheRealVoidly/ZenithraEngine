@@ -3,7 +3,7 @@
 void zenithra_init_movement_vals(struct InEngineData *engine_data_str){
 	engine_data_str->MOVE->cam_X = 0.0;
 	engine_data_str->MOVE->cam_Y = -1.0;
-	engine_data_str->MOVE->cam_Z = 0.0;
+	engine_data_str->MOVE->cam_Z = -5.0;
 
 	engine_data_str->MOVE->cam_yaw = 0.0; //Rotates around Y-axis
 	engine_data_str->MOVE->cam_pitch = 0.0; //Rotates around X-axis

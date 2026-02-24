@@ -1,6 +1,5 @@
 #include"zenithra_debug.h"
 #include<time.h>
-#include<stdio.h>
 
 void zenithra_log_msg(const char* message){
     int fd = open("./dev/zenithra_log.txt", O_APPEND | O_WRONLY | O_CREAT, 0644);
