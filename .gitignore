@@ -2,3 +2,11 @@
 main
 dev/zenithra_log.txt
 dev/src/*.o
+SDL2.dll
+cube.zbj
+dev/ZE.sublime-project
+dev/ZE.sublime-workspace
+dev/compile_flags.txt
+dev/objectformatter/formatter
+dev/objectformatter/formatter.c
+line.zbj
