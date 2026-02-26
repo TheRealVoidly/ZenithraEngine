@@ -1,8 +1,7 @@
-#include"zenithra_debug.h"
-#include<time.h>
-#include<stdio.h>
+#include "zenithra_debug.h"
+#include <time.h>
 
-void zenithra_log_msg(const char* message){
+void zenithra_log_msg(const char *message) {
     int fd = open("./dev/zenithra_log.txt", O_APPEND | O_WRONLY | O_CREAT, 0644);
     char *t_buffer = zenithra_get_time();
     write(fd, t_buffer, strlen(t_buffer));
@@ -12,7 +11,7 @@ void zenithra_log_msg(const char* message){
     close(fd);
 }
 
-void zenithra_log_err(const char* file_name, int line, const char* error_message){
+void zenithra_log_err(const char *file_name, int line, const char *error_message) {
     int fd = open("./dev/zenithra_log.txt", O_APPEND | O_WRONLY | O_CREAT, 0644);
     char *t_buffer = zenithra_get_time();
     write(fd, t_buffer, strlen(t_buffer));
@@ -29,7 +28,7 @@ void zenithra_log_err(const char* file_name, int line, const char* error_message
     SDL_ClearError();
 }
 
-char* zenithra_get_time(){
+char *zenithra_get_time() {
     char *buffer;
     buffer = malloc(sizeof(char) * 255);
     time_t rawtime = time(NULL);
@@ -39,7 +38,7 @@ char* zenithra_get_time(){
     return buffer;
 }
 
-void zenithra_log_init(){
+void zenithra_log_init() {
     int fd = open("./dev/zenithra_log.txt", O_TRUNC | O_WRONLY | O_CREAT, 0644);
     close(fd);
 }
