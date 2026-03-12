@@ -1,7 +1,8 @@
 #include "zenithra_core.h"
 #include <signal.h>
 
-bool DEV_MODE = false;
+bool program_should_quit = false;
+bool _dev_mode = false;
 
 /**
  * Initializes the engine.
@@ -18,7 +19,7 @@ bool DEV_MODE = false;
  * terminate.
  **/
 
-struct InEngineData *zenithra_init(int X, int Y) {
+struct InEngineData *zenithra_init(int X, int Y, int flags) {
     signal(SIGSEGV, zenithra_signal_handle);
     signal(SIGINT, zenithra_signal_handle);
     signal(SIGTERM, zenithra_signal_handle);
@@ -33,29 +34,10 @@ struct InEngineData *zenithra_init(int X, int Y) {
     engine_data_str->mem_usage = 0;
     engine_data_str->old_mem_usage = 0;
 
-    engine_data_str->SDL = zenithra_malloc(engine_data_str, sizeof *engine_data_str->SDL);
-    if (!engine_data_str->SDL) {
-        zenithra_critical_error_occured(
-            engine_data_str, __FILE__, __LINE__, "engine_data_str->SDL memmory alloc failed");
-    }
+    engine_data_str->SDL = zenithra_malloc(engine_data_str, sizeof *engine_data_str->SDL, __FILE__, __LINE__);
 
-    engine_data_str->MOVE = zenithra_malloc(engine_data_str, sizeof *engine_data_str->MOVE);
-    if (!engine_data_str->MOVE) {
-        zenithra_critical_error_occured(
-            engine_data_str, __FILE__, __LINE__, "engine_data_str->MOVE memmory alloc failed");
-    }
-
-    engine_data_str->KEYS = zenithra_malloc(engine_data_str, sizeof *engine_data_str->KEYS);
-    if (!engine_data_str->KEYS) {
-        zenithra_critical_error_occured(
-            engine_data_str, __FILE__, __LINE__, "engine_data_str->KEYS memmory alloc failed");
-    }
-
-    engine_data_str->INTERPRETER = zenithra_malloc(engine_data_str, sizeof *engine_data_str->INTERPRETER);
-    if (!engine_data_str->INTERPRETER) {
-        zenithra_critical_error_occured(
-            engine_data_str, __FILE__, __LINE__, "engine_data_str->INTERPRETER memmory alloc failed");
-    }
+    engine_data_str->MOVE =
+        zenithra_malloc(engine_data_str, sizeof *engine_data_str->MOVE, __FILE__, __LINE__);
 
     engine_data_str->focus_lost = false; // Window starts in focus
 
@@ -64,17 +46,15 @@ struct InEngineData *zenithra_init(int X, int Y) {
     engine_data_str->window_X = X;
     engine_data_str->window_Y = Y;
 
-    DEV_CONSOLE_CREATE; // Creates developer console if DEV_MODE is true. Only on Windows
-
-    if (!zenithra_initialize_sdl(engine_data_str)) {
-        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "Failed to initialize SDL");
-    } else {
-        zenithra_log_msg("SDL initialized successfully");
+    if (flags & DEV_MODE) {
+        _dev_mode = true;
+        DEV_CONSOLE_CREATE // Creates developer console if DEV_MODE is set. Only on Windows
     }
 
+    zenithra_initialize_sdl(engine_data_str);
+    zenithra_log_msg("SDL initialized successfully");
+
     zenithra_init_movement_vals(engine_data_str);
-    zenithra_init_keys(engine_data_str);
-    zenithra_create_point_buffer(engine_data_str);
 
     engine_data_str->obj_number = 0;
 
@@ -83,7 +63,7 @@ struct InEngineData *zenithra_init(int X, int Y) {
     return engine_data_str;
 }
 
-bool zenithra_initialize_sdl(struct InEngineData *engine_data_str) {
+void zenithra_initialize_sdl(struct InEngineData *engine_data_str) {
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
@@ -97,6 +77,8 @@ bool zenithra_initialize_sdl(struct InEngineData *engine_data_str) {
     if (engine_data_str->SDL->window == NULL) {
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
+
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
 
     engine_data_str->SDL->renderer =
         SDL_CreateRenderer(engine_data_str->SDL->window, -1, SDL_RENDERER_ACCELERATED);
@@ -113,7 +95,11 @@ bool zenithra_initialize_sdl(struct InEngineData *engine_data_str) {
     SDL_SetRelativeMouseMode(SDL_TRUE);
     SDL_SetRenderDrawBlendMode(engine_data_str->SDL->renderer, SDL_BLENDMODE_BLEND);
 
-    return true;
+    engine_data_str->frame_texture = SDL_CreateTexture(engine_data_str->SDL->renderer,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        engine_data_str->renderer_X,
+        engine_data_str->renderer_Y);
 }
 
 /**
@@ -136,19 +122,12 @@ void zenithra_destroy(struct InEngineData *engine_data_str) {
 
     zenithra_destroy_object(engine_data_str, -1);
 
-    zenithra_destroy_point_buffer(engine_data_str);
-
-    free(engine_data_str->INTERPRETER->command);
-    zenithra_interpreter_free_variable_list(engine_data_str, (void *)&engine_data_str->INTERPRETER->iv);
     zenithra_free(engine_data_str, (void **)&engine_data_str->MOVE, sizeof *engine_data_str->MOVE);
     zenithra_free(engine_data_str, (void **)&engine_data_str->SDL, sizeof *engine_data_str->SDL);
-    zenithra_free(
-        engine_data_str, (void **)&engine_data_str->INTERPRETER, sizeof *engine_data_str->INTERPRETER);
-    zenithra_free(engine_data_str, (void **)&engine_data_str->KEYS, sizeof *engine_data_str->KEYS);
 
     zenithra_check_and_display_memory_change(engine_data_str);
 
-    zenithra_free(engine_data_str, (void **)&engine_data_str, sizeof *engine_data_str);
+    free(engine_data_str);
 
     zenithra_log_msg("Zenithra exited successfully");
 }
@@ -243,8 +222,6 @@ void zenithra_signal_handle(int sig) {
     }
 }
 
-void zenithra_init_keys(struct InEngineData *engine_data_str) { engine_data_str->KEYS->escape = false; }
-
 #ifdef __linux__
 
 /**
@@ -292,10 +269,11 @@ void zenithra_disable_bypass_compositor(SDL_Window *window) {
  * Should be used for dynamic allocation instead of malloc for memory logging purposes
  **/
 
-void *zenithra_malloc(struct InEngineData *engine_data_str, size_t size) {
+void *zenithra_malloc(struct InEngineData *engine_data_str, size_t size, char *_file, int _line) {
     void *ret_p;
     ret_p = malloc(size);
     if (!ret_p) {
+        zenithra_critical_error_occured(engine_data_str, _file, _line, "Malloc failed!");
         return NULL;
     }
     engine_data_str->mem_usage += size;
@@ -306,10 +284,16 @@ void *zenithra_malloc(struct InEngineData *engine_data_str, size_t size) {
  * Should be used for dynamic reallocation instead of realloc for memory logging purposes
  **/
 
-void *zenithra_realloc(struct InEngineData *engine_data_str, void *p, size_t new_size, size_t old_size) {
+void *zenithra_realloc(struct InEngineData *engine_data_str,
+    void *p,
+    size_t new_size,
+    size_t old_size,
+    char *_file,
+    int _line) {
     void *ret_p;
     ret_p = realloc(p, new_size);
     if (!ret_p) {
+        zenithra_critical_error_occured(engine_data_str, _file, _line, "Realloc failed!");
         return NULL;
     }
     engine_data_str->mem_usage -= old_size;
@@ -323,7 +307,7 @@ void *zenithra_realloc(struct InEngineData *engine_data_str, void *p, size_t new
 
 void zenithra_check_and_display_memory_change(struct InEngineData *engine_data_str) {
     if (engine_data_str->mem_usage != engine_data_str->old_mem_usage) {
-        if (DEV_MODE) {
+        if (_dev_mode) {
             printf("%f\n", (float)((float)engine_data_str->mem_usage / 1048576.0));
         }
         engine_data_str->old_mem_usage = engine_data_str->mem_usage;

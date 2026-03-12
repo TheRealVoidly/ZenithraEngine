@@ -1,12 +1,13 @@
-#ifdef _WIN32
+#ifdef __linux__
+#include <unistd.h>
+#else
 #include <io.h>
 #include <windows.h>
-#else
-#include <unistd.h>
 #endif
 
 #include <SDL2/SDL_error.h>
 #include <fcntl.h>
+#include <stdarg.h>
 #include <stdbool.h>
 
 char *zenithra_get_time();

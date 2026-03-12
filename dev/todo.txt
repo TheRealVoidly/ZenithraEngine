@@ -2,6 +2,19 @@
 TODO
 -------------------------------------------------------
 
--- In script files make it so NULL represents the value NULL
+-- Write faces to texture instead of direct buffer
 
--- Make it so that incorrect usage of command in .zen files doesn't cause undefined behaviour (terminate command on \n)
+-- Backface culling and loading faces and objects in order
+
+-- Move fps counter to it's own function and make it a toggleable overlay
+
+-- Is this correct?
+if (-X_cam >= -max_X_at_Z && -X_cam <= max_X_at_Z || -Y_cam >= -max_Y_at_Z && -Y_cam <= max_Y_at_Z) {
+        // Point is directly behind camera 'inside' the FOV
+        Honesly probably just pass it though chatgipity
+
+-- Movement
+
+-- Eventually move some stuff from movement_vals to char_vals
+
+-- Do I need point buffer?

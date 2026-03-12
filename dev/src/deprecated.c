@@ -1,40 +1,143 @@
-#include "zenithra_core.h"
+typedef struct PointBuffer {
+    uint32_t X;
+    uint32_t Y;
 
-void zenithra_read_console_input(struct InEngineData *engine_data_str, struct ObjectData **obj) {
-    char c, input_buffer[255];
-    memset(input_buffer, 0, sizeof(input_buffer));
-    int input_buffer_n = 0;
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t a;
 
-    c = '\0';
-    if (_kbhit()) {
-        c = getchar();
-        input_buffer[input_buffer_n] = c;
-        input_buffer_n++;
-    }
+    struct PointBuffer *next;
+} POINT_BUF;
 
-    if (c == '\n') {
-        if (strncmp(input_buffer, "load_object", 11) == 0) {
-            for (int i = 0; i < input_buffer_n; i++) {
-                if (input_buffer[i + 11] != '\n') {
-                    input_buffer[i] = input_buffer[i + 11];
-                }
-            }
-            input_buffer[input_buffer_n - 12] = '\0';
-            obj[engine_data_str->obj_num] =
-                zenithra_load_obj(engine_data_str, false, input_buffer, "./gamedata/textures/gravel.DDS");
+/**
+ * Draws all the pixels stored in the
+ * engine_data_str->RENDERER_BUF
+ **/
+
+void zenithra_draw_points(struct InEngineData *engine_data_str) {
+    void *pixels; // pixels is a pointer to the framebuffer
+    int pitch;    // pitch is the number of bytes per row
+
+    if (SDL_LockTexture(engine_data_str->frame_texture, NULL, &pixels, &pitch) == 0) {
+        Uint32 *pixel_ptr = (Uint32 *)pixels;
+
+        POINT_BUF *node = engine_data_str->POINT_BUF;
+        while (node) {
+            Uint32 combined = ((Uint32)node->r << 24) | ((Uint32)node->g << 16) | ((Uint32)node->b << 8) |
+                ((Uint32)node->a);
+            pixel_ptr[node->Y * (pitch / 4) + node->X] = combined;
+
+            node = node->next;
         }
-        memset(input_buffer, 0, sizeof(input_buffer));
-        input_buffer_n = 0;
+
+        SDL_UnlockTexture(engine_data_str->frame_texture);
+
+        for (int y = 0; y < engine_data_str->renderer_Y; y++) {
+            for (int x = 0; x < engine_data_str->renderer_X; x++) {
+                pixel_ptr[y * (pitch / 4) + x] = 0xFFFF0000; // ARGB color example (red)
+            }
+        }
     }
 }
 
-uint64_t zenithra_8_byte_to_int(char *str) {
-    int i = 0;
-    uint64_t value = 0;
-    while (str[i]) {
-        value = (value << 8) | (unsigned char)str[i];
-        i++;
+/**
+ * Creates the renderer buffer
+ * Stores pixel coordinate and color of
+ * each pixel
+ **/
+
+void zenithra_create_point_buffer(struct InEngineData *engine_data_str) {
+    int count = engine_data_str->renderer_X * engine_data_str->renderer_Y;
+
+    POINT_BUF *head = NULL;
+    POINT_BUF *next_in_line = NULL;
+
+    for (int i = 0; i < count; i++) {
+        POINT_BUF *node = zenithra_malloc(engine_data_str, sizeof *node, __FILE__, __LINE__);
+
+        node->X = i % engine_data_str->renderer_X; // Pixel
+                                                   // #X left
+                                                   // ->
+                                                   // right
+        node->Y = i / engine_data_str->renderer_X; // Pixel
+                                                   // #Y up
+                                                   // -> down
+
+        node->r = 0; // Initialize all
+                     // pixels as black
+        node->g = 0;
+        node->b = 0;
+        node->a = 0;
+
+        node->next = NULL;
+
+        if (!head) {
+            head = node;
+        } else {
+            next_in_line->next = node;
+        }
+
+        next_in_line = node;
     }
-    value = value % 1024;
-    return value;
+    engine_data_str->POINT_BUF = head;
+
+    zenithra_log_msg("Point buffer created "
+                     "successfully");
+}
+
+/**
+ * Destroy the point buffer
+ * Probably only when terminating the
+ * engine
+ **/
+
+void zenithra_destroy_point_buffer(struct InEngineData *engine_data_str) {
+    POINT_BUF *node = engine_data_str->POINT_BUF;
+    POINT_BUF *next_in_line = node->next;
+
+    zenithra_free(engine_data_str, (void **)&node, sizeof *node);
+
+    while (next_in_line) {
+        node = next_in_line;
+        next_in_line = node->next;
+
+        zenithra_free(engine_data_str, (void **)&node, sizeof *node);
+    }
+}
+
+/**
+ * Translate to normalized screen
+ * coordinated via
+ * zenithra_calculate_and_normalize_vertice()
+ * and then to pixels coordinates and
+ * save into
+ * engine_data_str->POINT_RENDERER_BUF
+ *
+ * @param double Xw, double Yw, double
+ * Zw world coordinates of vertice
+ **/
+
+void zenithra_save_points_for_rendering(struct InEngineData *engine_data_str,
+    double Xw,
+    double Yw,
+    double Zw) {
+    struct TempNormCoords *temp_norm_coords;
+    temp_norm_coords = zenithra_normalize_vertice(engine_data_str, Xw, Yw, Zw);
+
+    int screen_X = (int)round(temp_norm_coords->norm_X * engine_data_str->renderer_X); // Map to
+                                                                                       // screen
+                                                                                       // pixels
+    int screen_Y = (int)round(temp_norm_coords->norm_Y * engine_data_str->renderer_Y);
+
+    zenithra_free(engine_data_str, (void **)&temp_norm_coords, sizeof *temp_norm_coords);
+
+    POINT_BUF *node = engine_data_str->POINT_BUF;
+    while (node) {
+        if (screen_X == node->X && screen_Y == node->Y) {
+            node->r = 255;
+        }
+
+        node = node->next;
+    }
 }

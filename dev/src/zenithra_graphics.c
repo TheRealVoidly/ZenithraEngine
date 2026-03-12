@@ -1,79 +1,8 @@
 #include "zenithra_core.h"
 
-/**
- * Creates the renderer buffer
- * Stores pixel coordinate and color of
- * each pixel
- **/
-
-void zenithra_create_point_buffer(struct InEngineData *engine_data_str) {
-    int count = engine_data_str->renderer_X * engine_data_str->renderer_Y;
-
-    POINT_BUF *head = NULL;
-    POINT_BUF *next_in_line = NULL;
-
-    for (int i = 0; i < count; i++) {
-        POINT_BUF *node = zenithra_malloc(engine_data_str, sizeof *node);
-
-        if (!node) {
-            char error_message[255];
-            snprintf(error_message,
-                sizeof error_message,
-                "POINT_BUF allocation "
-                "failed at pixel %d",
-                i);
-            zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, error_message);
-        }
-
-        node->X = i % engine_data_str->renderer_X; // Pixel
-                                                   // #X left
-                                                   // ->
-                                                   // right
-        node->Y = i / engine_data_str->renderer_X; // Pixel
-                                                   // #Y up
-                                                   // -> down
-
-        node->r = 0; // Initialize all
-                     // pixels as black
-        node->g = 0;
-        node->b = 0;
-        node->w = 0;
-
-        node->next = NULL;
-
-        if (!head) {
-            head = node;
-        } else {
-            next_in_line->next = node;
-        }
-
-        next_in_line = node;
-    }
-    engine_data_str->POINT_BUF = head;
-
-    zenithra_log_msg("Point buffer created "
-                     "successfully");
-}
-
-/**
- * Destroy the point buffer
- * Probably only when terminating the
- * engine
- **/
-
-void zenithra_destroy_point_buffer(struct InEngineData *engine_data_str) {
-    POINT_BUF *node = engine_data_str->POINT_BUF;
-    POINT_BUF *next_in_line = node->next;
-
-    zenithra_free(engine_data_str, (void **)&node, sizeof *node);
-
-    while (next_in_line) {
-        node = next_in_line;
-        next_in_line = node->next;
-
-        zenithra_free(engine_data_str, (void **)&node, sizeof *node);
-    }
-}
+static void _free_object(struct InEngineData *engine_data_str, int index);
+static void _read_object(struct InEngineData *engine_data_str, int stage, int n, char line[256]);
+static void _set_vertice(struct InEngineData *engine_data_str, SDL_Vertex *vertices, int index, int i);
 
 /**
  * Check if point is renderable/should
@@ -90,10 +19,7 @@ void zenithra_destroy_point_buffer(struct InEngineData *engine_data_str) {
 
 struct TempNormCoords *
 zenithra_normalize_vertice(struct InEngineData *engine_data_str, double Xw, double Yw, double Zw) {
-    double Xr = Xw - engine_data_str->MOVE->cam_X; // Point
-                                                   // coordinates
-                                                   // relative to
-                                                   // camera
+    double Xr = Xw - engine_data_str->MOVE->cam_X; // Point coordinates relative to camera
     double Yr = Yw - engine_data_str->MOVE->cam_Y;
     double Zr = Zw - engine_data_str->MOVE->cam_Z;
 
@@ -110,139 +36,62 @@ zenithra_normalize_vertice(struct InEngineData *engine_data_str, double Xw, doub
     Y_cam = Y_cam2;
     Z_cam = Z_cam2;
 
-    if (Z_cam < engine_data_str->MOVE->Z_near) {
-        // Point is between camerra and
-        // the near plane return NULL;
+    /*if (Z_cam < engine_data_str->MOVE->Z_near) {
+        // Point is between camerra and the near plane
+        return NULL;
     }
     if (Z_cam > engine_data_str->MOVE->Z_far) {
         // Point is behind the far plane
-        // return NULL;
-    }
+        return NULL;
+    }*/
 
-    double max_X_at_Z = Z_cam * tan(engine_data_str->MOVE->hFOV_rad / 2.0); // Find maximum
-                                                                            // visible X at Z_cam
-    double max_Y_at_Z = Z_cam * tan(engine_data_str->MOVE->vFOV_rad / 2.0); // Find maximum
-                                                                            // visible Y at Z_cam
+    double max_X_at_Z = Z_cam * tan(engine_data_str->MOVE->hFOV_rad / 2.0); // Find maximum visible X at Z_cam
+    double max_Y_at_Z = Z_cam * tan(engine_data_str->MOVE->vFOV_rad / 2.0); // Find maximum visible Y at Z_cam
     if (X_cam < -max_X_at_Z || X_cam > max_X_at_Z || Y_cam < -max_Y_at_Z || Y_cam > max_Y_at_Z) {
         // Point is outside FOV
         // return NULL;
     }
 
     struct TempNormCoords *temp_norm_coords = NULL;
-    temp_norm_coords = zenithra_malloc(engine_data_str, sizeof *temp_norm_coords);
+    temp_norm_coords = zenithra_malloc(engine_data_str, sizeof *temp_norm_coords, __FILE__, __LINE__);
 
-    temp_norm_coords->norm_X = (X_cam / max_X_at_Z + 1.0) / 2.0; // Normalize X and Y to
-                                                                 // [0,1]
+    if (-X_cam >= -max_X_at_Z && -X_cam <= max_X_at_Z || -Y_cam >= -max_Y_at_Z && -Y_cam <= max_Y_at_Z) {
+        // Point is directly behind camera 'inside' the FOV
+        temp_norm_coords->norm_X = 0; // Normalize X and Y to [0,1]
+        temp_norm_coords->norm_Y = 0;
+
+        return temp_norm_coords;
+    }
+
+    temp_norm_coords->norm_X = (X_cam / max_X_at_Z + 1.0) / 2.0; // Normalize X and Y to [0,1]
     temp_norm_coords->norm_Y = (Y_cam / max_Y_at_Z + 1.0) / 2.0;
 
     return temp_norm_coords;
 }
 
 /**
- * Translate to normalized screen
- * coordinated via
- * zenithra_calculate_and_normalize_vertice()
- * and then to pixels coordinates and
- * save into
- * engine_data_str->POINT_RENDERER_BUF
+ * Render an object
  *
- * @param double Xw, double Yw, double
- * Zw world coordinates of vertice
- **/
-
-void zenithra_save_points_for_rendering(struct InEngineData *engine_data_str,
-    double Xw,
-    double Yw,
-    double Zw) {
-    struct TempNormCoords *temp_norm_coords;
-    temp_norm_coords = zenithra_normalize_vertice(engine_data_str, Xw, Yw, Zw);
-
-    int screen_X = (int)round(temp_norm_coords->norm_X * engine_data_str->renderer_X); // Map to
-                                                                                       // screen
-                                                                                       // pixels
-    int screen_Y = (int)round(temp_norm_coords->norm_Y * engine_data_str->renderer_Y);
-
-    zenithra_free(engine_data_str, (void **)&temp_norm_coords, sizeof *temp_norm_coords);
-
-    POINT_BUF *node = engine_data_str->POINT_BUF;
-    while (node) {
-        if (screen_X == node->X && screen_Y == node->Y) {
-            node->r = 255;
-        }
-
-        node = node->next;
-    }
-}
-
-/**
- * Creates a single triangular face on
- * normalized screen space
+ * @param index of object
  **/
 
 void zenithra_render_object(struct InEngineData *engine_data_str, int index) {
-    for (int i = 0;
-        i < engine_data_str->ZBJ_LIST[index].face->size / sizeof *engine_data_str->ZBJ_LIST[index].face;
-        i++) {
-        SDL_Vertex *vertices = zenithra_malloc(engine_data_str, 3 * sizeof *vertices);
+    int num_of_faces =
+        (engine_data_str->ZBJ_LIST[index].face->size / sizeof *engine_data_str->ZBJ_LIST[index].face);
 
-        struct TempNormCoords *temp_norm_coords;
-        temp_norm_coords = zenithra_normalize_vertice(engine_data_str,
-            engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i].f1 - 1].x,
-            engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i].f1 - 1].y,
-            engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i].f1 - 1].z);
+    SDL_Vertex *vertices =
+        zenithra_malloc(engine_data_str, num_of_faces * 3 * sizeof *vertices, __FILE__, __LINE__);
 
-        vertices[0].position.x = (int)round(temp_norm_coords->norm_X * engine_data_str->renderer_X);
-        vertices[0].position.y = (int)round(temp_norm_coords->norm_Y * engine_data_str->renderer_Y);
-        vertices[0].color.r = 255;
-        vertices[0].color.g = 0;
-        vertices[0].color.b = 0;
-        vertices[0].color.a = 255;
-        zenithra_free(engine_data_str, (void **)&temp_norm_coords, sizeof *temp_norm_coords);
-
-        temp_norm_coords = zenithra_normalize_vertice(engine_data_str,
-            engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i].f2 - 1].x,
-            engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i].f2 - 1].y,
-            engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i].f2 - 1].z);
-
-        vertices[1].position.x = (int)round(temp_norm_coords->norm_X * engine_data_str->renderer_X);
-        vertices[1].position.y = (int)round(temp_norm_coords->norm_Y * engine_data_str->renderer_Y);
-        vertices[1].color.r = 0;
-        vertices[1].color.g = 255;
-        vertices[1].color.b = 0;
-        vertices[1].color.a = 255;
-        zenithra_free(engine_data_str, (void **)&temp_norm_coords, sizeof *temp_norm_coords);
-
-        temp_norm_coords = zenithra_normalize_vertice(engine_data_str,
-            engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i].f3 - 1].x,
-            engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i].f3 - 1].y,
-            engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i].f3 - 1].z);
-
-        vertices[2].position.x = (int)round(temp_norm_coords->norm_X * engine_data_str->renderer_X);
-        vertices[2].position.y = (int)round(temp_norm_coords->norm_Y * engine_data_str->renderer_Y);
-        vertices[2].color.r = 0;
-        vertices[2].color.g = 0;
-        vertices[2].color.b = 255;
-        vertices[2].color.a = 255;
-        zenithra_free(engine_data_str, (void **)&temp_norm_coords, sizeof *temp_norm_coords);
-
-        SDL_RenderGeometry(engine_data_str->SDL->renderer, NULL, vertices, 3, NULL, 0);
-        zenithra_free(engine_data_str, (void **)&vertices, 3 * sizeof *vertices);
+    for (int i = 0; i < num_of_faces * 3; i++) {
+        _set_vertice(engine_data_str, vertices, index, i);
     }
-}
 
-/**
- * Draws all the pixels stored in the
- * engine_data_str->RENDERER_BUF
- **/
+    // int *indices = zenithra_malloc(engine_data_str, num_of_faces * sizeof *indices, __FILE__, __LINE__);
 
-void zenithra_draw(struct InEngineData *engine_data_str) {
-    POINT_BUF *node = engine_data_str->POINT_BUF;
-    while (node) {
-        SDL_SetRenderDrawColor(engine_data_str->SDL->renderer, node->r, node->g, node->b, node->w);
-        SDL_RenderDrawPoint(engine_data_str->SDL->renderer, node->X, node->Y);
+    SDL_RenderGeometry(engine_data_str->SDL->renderer, NULL, vertices, num_of_faces * 3, NULL, 0);
 
-        node = node->next;
-    }
+    zenithra_free(engine_data_str, (void **)&vertices, num_of_faces * 3 * sizeof *vertices);
+    // zenithra_free(engine_data_str, (void **)&indices, num_of_faces * sizeof *indices);
 }
 
 /**
@@ -253,9 +102,7 @@ void zenithra_draw(struct InEngineData *engine_data_str) {
  * engine_data_str->obj_number
  *
  * @return object index if object loaded
- * properly IF error occurs, return -1
- * and free all successfully allocated
- * memory for object
+ * properly, return -1 if file does not exist
  **/
 
 int zenithra_load_object(struct InEngineData *engine_data_str, char *file_name) {
@@ -264,48 +111,32 @@ int zenithra_load_object(struct InEngineData *engine_data_str, char *file_name) 
     fp = fopen(file_name, "rb");
 
     if (!fp) {
-        char error_message[255];
+        char error_message[256];
         snprintf(error_message,
             sizeof error_message,
             "Object file: %s does not "
             "exist",
             file_name);
         zenithra_log_err(__FILE__, __LINE__, error_message);
-        return false;
+        return -1;
     }
-
-    char line[255];
-    float x, y, z;
-    int f1, f2, f3;
 
     ZBJ_LIST *list_node = NULL;
 
     if (engine_data_str->obj_number == 0) {
-        list_node = zenithra_malloc(engine_data_str, sizeof *list_node);
+        list_node = zenithra_malloc(engine_data_str, sizeof *list_node, __FILE__, __LINE__);
     } else {
         list_node = zenithra_realloc(engine_data_str,
             engine_data_str->ZBJ_LIST,
             (engine_data_str->obj_number + 1) * sizeof *list_node,
-            (engine_data_str->obj_number) * sizeof *list_node);
-    }
-
-    if (!list_node) {
-        char error_message[255];
-        snprintf(error_message,
-            sizeof error_message,
-            "Object allocation failed "
-            "for object n: %d",
-            engine_data_str->obj_number);
-        zenithra_log_err(__FILE__, __LINE__, error_message);
-        zenithra_destroy_object(engine_data_str, engine_data_str->obj_number);
-        return false;
+            (engine_data_str->obj_number) * sizeof *list_node,
+            __FILE__,
+            __LINE__);
     }
 
     engine_data_str->ZBJ_LIST = list_node;
 
-    ZBJ_VERTICE_DATA *tmp_vertice_data = NULL;
-    ZBJ_FACE_DATA *tmp_face_data = NULL;
-
+    char line[256];
     int n_vertices = 1;
     int n_faces = 1;
     int stage = 0;
@@ -316,129 +147,18 @@ int zenithra_load_object(struct InEngineData *engine_data_str, char *file_name) 
             }
         } else {
             if (stage == 0) {
-                if (n_vertices == 1) {
-                    tmp_vertice_data =
-                        zenithra_malloc(engine_data_str, (n_vertices) * sizeof *tmp_vertice_data);
-
-                    if (tmp_vertice_data) {
-                        engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice = tmp_vertice_data;
-                    } else {
-                        char error_message[255];
-                        snprintf(error_message,
-                            sizeof error_message,
-                            "Vertice "
-                            "n: %d "
-                            "allocation"
-                            " for "
-                            "object n: "
-                            "%d failed",
-                            n_vertices,
-                            engine_data_str->obj_number);
-                        zenithra_log_err(__FILE__, __LINE__, error_message);
-                        zenithra_destroy_object(engine_data_str, engine_data_str->obj_number);
-                        return false;
-                    }
-                } else {
-                    tmp_vertice_data = zenithra_realloc(engine_data_str,
-                        engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice,
-                        (n_vertices) * sizeof *tmp_vertice_data,
-                        (n_vertices - 1) * sizeof *tmp_vertice_data);
-                    tmp_vertice_data->size = (n_vertices) * sizeof *tmp_vertice_data;
-
-                    if (tmp_vertice_data) {
-                        engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice = tmp_vertice_data;
-                    } else {
-                        char error_message[255];
-                        snprintf(error_message,
-                            sizeof error_message,
-                            "Vertice "
-                            "n: %d "
-                            "allocation"
-                            " for "
-                            "object n: "
-                            "%d failed",
-                            n_vertices,
-                            engine_data_str->obj_number);
-                        zenithra_log_err(__FILE__, __LINE__, error_message);
-                        zenithra_destroy_object(engine_data_str, engine_data_str->obj_number);
-                        return false;
-                    }
-                }
-
-                tmp_vertice_data = NULL;
-
-                if (sscanf(line, "%f %f %f", &x, &y, &z) == 3) {
-                    engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice[n_vertices - 1].x = x;
-                    engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice[n_vertices - 1].y = y;
-                    engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice[n_vertices - 1].z = z;
-
-                    n_vertices++;
-                }
+                _read_object(engine_data_str, stage, n_vertices, line);
+                n_vertices++;
             }
 
             if (stage == 1) {
-                if (n_faces == 1) {
-                    tmp_face_data = zenithra_malloc(engine_data_str, (n_faces) * sizeof *tmp_face_data);
-
-                    if (tmp_face_data) {
-                        engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face = tmp_face_data;
-                    } else {
-                        char error_message[255];
-                        snprintf(error_message,
-                            sizeof error_message,
-                            "Vertice "
-                            "n: %d "
-                            "allocation"
-                            " for "
-                            "object n: "
-                            "%d failed",
-                            n_faces,
-                            engine_data_str->obj_number);
-                        zenithra_log_err(__FILE__, __LINE__, error_message);
-                        zenithra_destroy_object(engine_data_str, engine_data_str->obj_number);
-                        return false;
-                    }
-                } else {
-                    tmp_face_data = zenithra_realloc(engine_data_str,
-                        engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face,
-                        (n_faces) * sizeof *tmp_face_data,
-                        (n_faces - 1) * sizeof *tmp_face_data);
-                    tmp_face_data->size = (n_faces) * sizeof *tmp_face_data;
-
-                    if (tmp_face_data) {
-                        engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face = tmp_face_data;
-                    } else {
-                        char error_message[255];
-                        snprintf(error_message,
-                            sizeof error_message,
-                            "Vertice "
-                            "n: %d "
-                            "allocation"
-                            " for "
-                            "object n: "
-                            "%d failed",
-                            n_faces,
-                            engine_data_str->obj_number);
-                        zenithra_log_err(__FILE__, __LINE__, error_message);
-                        zenithra_destroy_object(engine_data_str, engine_data_str->obj_number);
-                        return false;
-                    }
-                }
-
-                tmp_face_data = NULL;
-
-                if (sscanf(line, "%d %d %d", &f1, &f2, &f3) == 3) {
-                    engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face[n_faces - 1].f1 = f1;
-                    engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face[n_faces - 1].f2 = f2;
-                    engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face[n_faces - 1].f3 = f3;
-
-                    n_faces++;
-                }
+                _read_object(engine_data_str, stage, n_faces, line);
+                n_faces++;
             }
         }
     }
 
-    char message[255];
+    char message[256];
     snprintf(message,
         sizeof message,
         "Object n: %d loaded "
@@ -462,12 +182,7 @@ void zenithra_destroy_object(struct InEngineData *engine_data_str, int index) {
     if (index == -1) {
         if (engine_data_str->obj_number > 0) {
             for (int i = 0; i < engine_data_str->obj_number; i++) {
-                zenithra_free(engine_data_str,
-                    (void **)&engine_data_str->ZBJ_LIST[i].face,
-                    engine_data_str->ZBJ_LIST[i].face->size);
-                zenithra_free(engine_data_str,
-                    (void **)&engine_data_str->ZBJ_LIST[i].vertice,
-                    engine_data_str->ZBJ_LIST[i].vertice->size);
+                _free_object(engine_data_str, i);
             }
 
             zenithra_free(engine_data_str,
@@ -476,12 +191,7 @@ void zenithra_destroy_object(struct InEngineData *engine_data_str, int index) {
         }
     } else {
         if (engine_data_str->obj_number < index) {
-            zenithra_free(engine_data_str,
-                (void **)&engine_data_str->ZBJ_LIST[index].face,
-                engine_data_str->ZBJ_LIST[index].face->size);
-            zenithra_free(engine_data_str,
-                (void **)&engine_data_str->ZBJ_LIST[index].vertice,
-                engine_data_str->ZBJ_LIST[index].vertice->size);
+            _free_object(engine_data_str, index);
 
             for (int i = index; i < engine_data_str->obj_number; i++) {
                 if (i + 1 < engine_data_str->obj_number) {
@@ -493,7 +203,9 @@ void zenithra_destroy_object(struct InEngineData *engine_data_str, int index) {
                 engine_data_str->ZBJ_LIST = zenithra_realloc(engine_data_str,
                     engine_data_str->ZBJ_LIST,
                     (engine_data_str->obj_number - 1) * sizeof *engine_data_str->ZBJ_LIST,
-                    (engine_data_str->obj_number) * sizeof *engine_data_str->ZBJ_LIST);
+                    (engine_data_str->obj_number) * sizeof *engine_data_str->ZBJ_LIST,
+                    __FILE__,
+                    __LINE__);
             } else {
                 zenithra_free(engine_data_str,
                     (void **)&engine_data_str->ZBJ_LIST,
@@ -502,4 +214,105 @@ void zenithra_destroy_object(struct InEngineData *engine_data_str, int index) {
             engine_data_str->obj_number--;
         }
     }
+}
+
+//-----------------------------------------------
+// Helper funcs
+//-----------------------------------------------
+
+static void _free_object(struct InEngineData *engine_data_str, int index) {
+    zenithra_free(engine_data_str,
+        (void **)&engine_data_str->ZBJ_LIST[index].face,
+        engine_data_str->ZBJ_LIST[index].face->size);
+    zenithra_free(engine_data_str,
+        (void **)&engine_data_str->ZBJ_LIST[index].vertice,
+        engine_data_str->ZBJ_LIST[index].vertice->size);
+}
+
+static void _read_object(struct InEngineData *engine_data_str, int stage, int n, char line[256]) {
+    ZBJ_VERTICE_DATA *tmp_vertice_data = NULL;
+    ZBJ_FACE_DATA *tmp_face_data = NULL;
+    float x, y, z;
+    int f1, f2, f3;
+    if (stage == 0) {
+        if (n == 1) {
+            tmp_vertice_data =
+                zenithra_malloc(engine_data_str, (n) * sizeof *tmp_vertice_data, __FILE__, __LINE__);
+
+            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice = tmp_vertice_data;
+        } else {
+            tmp_vertice_data = zenithra_realloc(engine_data_str,
+                engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice,
+                (n) * sizeof *tmp_vertice_data,
+                (n - 1) * sizeof *tmp_vertice_data,
+                __FILE__,
+                __LINE__);
+            tmp_vertice_data->size = (n) * sizeof *tmp_vertice_data;
+
+            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice = tmp_vertice_data;
+        }
+
+        tmp_vertice_data = NULL;
+
+        if (sscanf(line, "%f %f %f", &x, &y, &z) == 3) {
+            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice[n - 1].x = x;
+            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice[n - 1].y = y;
+            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice[n - 1].z = z;
+
+            n++;
+        }
+    }
+
+    if (stage == 1) {
+        if (n == 1) {
+            tmp_face_data = zenithra_malloc(engine_data_str, (n) * sizeof *tmp_face_data, __FILE__, __LINE__);
+
+            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face = tmp_face_data;
+        } else {
+            tmp_face_data = zenithra_realloc(engine_data_str,
+                engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face,
+                (n) * sizeof *tmp_face_data,
+                (n - 1) * sizeof *tmp_face_data,
+                __FILE__,
+                __LINE__);
+            tmp_face_data->size = (n) * sizeof *tmp_face_data;
+
+            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face = tmp_face_data;
+        }
+
+        tmp_face_data = NULL;
+
+        if (sscanf(line, "%d %d %d", &f1, &f2, &f3) == 3) {
+            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face[n - 1].f1 = f1;
+            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face[n - 1].f2 = f2;
+            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face[n - 1].f3 = f3;
+
+            n++;
+        }
+    }
+}
+
+static void _set_vertice(struct InEngineData *engine_data_str, SDL_Vertex *vertices, int index, int i) {
+    ZBJ_VERTICE_DATA temp;
+
+    if (i % 3 == 0) {
+        temp = engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i / 3].f1 - 1];
+    }
+    if (i % 3 == 1) {
+        temp = engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i / 3].f2 - 1];
+    }
+    if (i % 3 == 2) {
+        temp = engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i / 3].f3 - 1];
+    }
+
+    struct TempNormCoords *temp_norm_coords;
+    temp_norm_coords = zenithra_normalize_vertice(engine_data_str, temp.x, temp.y, temp.z);
+
+    vertices[i].position.x = (int)round(temp_norm_coords->norm_X * engine_data_str->renderer_X);
+    vertices[i].position.y = (int)round(temp_norm_coords->norm_Y * engine_data_str->renderer_Y);
+    vertices[i].color.r = 255;
+    vertices[i].color.g = 0;
+    vertices[i].color.b = 0;
+    vertices[i].color.a = 255;
+    zenithra_free(engine_data_str, (void **)&temp_norm_coords, sizeof *temp_norm_coords);
 }

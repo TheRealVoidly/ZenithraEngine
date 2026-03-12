@@ -7,7 +7,7 @@ int main(int argc, char *argv[]) {
 
     input_file = fopen(argv[1], "rb");
 
-    char buffer[255] = "";
+    char buffer[256] = "";
     int n = 0;
     while (argv[1][n] != '.' && argv[1][n] != '\0') {
         buffer[n] = argv[1][n];
