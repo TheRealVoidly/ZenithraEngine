@@ -18,6 +18,7 @@
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_scancode.h>
 #include <SDL2/SDL_surface.h>
+#include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_video.h>
 
 #include "zenithra_debug.h"
@@ -27,6 +28,7 @@
 
 extern bool program_should_quit;
 extern bool _dev_mode;
+extern bool _show_fps;
 
 // Flags
 #define DEV_MODE                                                                                             \
@@ -109,6 +111,14 @@ typedef struct MovementEngineData {
 // Core Structs
 //-----------------------------------------------
 
+typedef struct Timer {
+    struct timespec fps_old_time;
+    struct timespec fps_cur_time;
+
+    time_t update_cur_time;
+    time_t update_old_time;
+} TIMER;
+
 typedef struct SDLEngineData {
     SDL_Window *window;
     SDL_Renderer *renderer;
@@ -118,8 +128,10 @@ struct InEngineData {
     MOVE *MOVE;
     SDL *SDL;
     ZBJ_LIST *ZBJ_LIST;
+    TIMER *TIMER;
 
     SDL_Texture *frame_texture;
+    TTF_Font *font;
 
     unsigned int obj_number;
 
@@ -146,7 +158,7 @@ int _kbhit();
 
 void zenithra_signal_handle(int sig);
 void zenithra_free(struct InEngineData *engine_data_str, void **pp, size_t size);
-struct InEngineData *zenithra_init(int X, int Y, int flags);
+struct InEngineData *zenithra_init(int X, int Y, int flags, char *font_path, int font_size);
 void zenithra_destroy(struct InEngineData *engine_data_str);
 void zenithra_critical_error_occured(struct InEngineData *engine_data_str,
     char *file_name,
@@ -162,6 +174,7 @@ void *zenithra_realloc(struct InEngineData *engine_data_str,
     size_t old_size,
     char *_file,
     int _line);
+SDL_Texture *zenithra_update_and_display_fps(struct InEngineData *engine_data_str);
 
 //-----------------------------------------------
 // Movement Funcs

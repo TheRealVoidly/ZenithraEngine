@@ -3,6 +3,7 @@
 
 bool program_should_quit = false;
 bool _dev_mode = false;
+bool _show_fps = false;
 
 /**
  * Initializes the engine.
@@ -19,7 +20,7 @@ bool _dev_mode = false;
  * terminate.
  **/
 
-struct InEngineData *zenithra_init(int X, int Y, int flags) {
+struct InEngineData *zenithra_init(int X, int Y, int flags, char *font_path, int font_size) {
     signal(SIGSEGV, zenithra_signal_handle);
     signal(SIGINT, zenithra_signal_handle);
     signal(SIGTERM, zenithra_signal_handle);
@@ -39,6 +40,9 @@ struct InEngineData *zenithra_init(int X, int Y, int flags) {
     engine_data_str->MOVE =
         zenithra_malloc(engine_data_str, sizeof *engine_data_str->MOVE, __FILE__, __LINE__);
 
+    engine_data_str->TIMER =
+        zenithra_malloc(engine_data_str, sizeof *engine_data_str->TIMER, __FILE__, __LINE__);
+
     engine_data_str->focus_lost = false; // Window starts in focus
 
     zenithra_log_msg("Zenithra engine started");
@@ -53,6 +57,12 @@ struct InEngineData *zenithra_init(int X, int Y, int flags) {
 
     zenithra_initialize_sdl(engine_data_str);
     zenithra_log_msg("SDL initialized successfully");
+
+    engine_data_str->font = TTF_OpenFont(font_path, font_size);
+    if (!engine_data_str->font) {
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, TTF_GetError());
+    }
+    zenithra_log_msg("Font initialized successfully");
 
     zenithra_init_movement_vals(engine_data_str);
 
@@ -74,7 +84,7 @@ void zenithra_initialize_sdl(struct InEngineData *engine_data_str) {
         engine_data_str->window_X,
         engine_data_str->window_Y,
         SDL_WINDOW_SHOWN);
-    if (engine_data_str->SDL->window == NULL) {
+    if (!engine_data_str->SDL->window) {
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
 
@@ -82,7 +92,7 @@ void zenithra_initialize_sdl(struct InEngineData *engine_data_str) {
 
     engine_data_str->SDL->renderer =
         SDL_CreateRenderer(engine_data_str->SDL->window, -1, SDL_RENDERER_ACCELERATED);
-    if (engine_data_str->SDL->renderer == NULL) {
+    if (!engine_data_str->SDL->renderer) {
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
     SDL_GetRendererOutputSize(
@@ -100,6 +110,10 @@ void zenithra_initialize_sdl(struct InEngineData *engine_data_str) {
         SDL_TEXTUREACCESS_STREAMING,
         engine_data_str->renderer_X,
         engine_data_str->renderer_Y);
+
+    if (TTF_Init() == -1) {
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, TTF_GetError());
+    }
 }
 
 /**
@@ -118,10 +132,14 @@ void zenithra_destroy(struct InEngineData *engine_data_str) {
     SDL_DestroyRenderer(engine_data_str->SDL->renderer);
     SDL_DestroyWindow(engine_data_str->SDL->window);
 
+    TTF_CloseFont(engine_data_str->font);
+
+    TTF_Quit();
     SDL_Quit();
 
     zenithra_destroy_object(engine_data_str, -1);
 
+    zenithra_free(engine_data_str, (void **)&engine_data_str->TIMER, sizeof *engine_data_str->TIMER);
     zenithra_free(engine_data_str, (void **)&engine_data_str->MOVE, sizeof *engine_data_str->MOVE);
     zenithra_free(engine_data_str, (void **)&engine_data_str->SDL, sizeof *engine_data_str->SDL);
 
@@ -312,4 +330,51 @@ void zenithra_check_and_display_memory_change(struct InEngineData *engine_data_s
         }
         engine_data_str->old_mem_usage = engine_data_str->mem_usage;
     }
+}
+
+/**
+ * Fps counter function
+ **/
+
+SDL_Texture *zenithra_update_and_display_fps(struct InEngineData *engine_data_str) {
+    double elapsed_ns, fps;
+
+    SDL_Color font_color;
+    font_color.r = 255;
+    font_color.g = 255;
+    font_color.b = 255;
+    font_color.a = 255;
+
+    clock_gettime(CLOCK_MONOTONIC, &engine_data_str->TIMER->fps_cur_time);
+
+    // elapsed time in nanoseconds
+    elapsed_ns =
+        (engine_data_str->TIMER->fps_cur_time.tv_sec - engine_data_str->TIMER->fps_old_time.tv_sec) * 1e9 +
+        (engine_data_str->TIMER->fps_cur_time.tv_nsec - engine_data_str->TIMER->fps_old_time.tv_nsec);
+
+    if (elapsed_ns > 0) {
+        fps = 1e9 / elapsed_ns; // frames per second
+    } else {
+        fps = 0;
+    }
+
+    engine_data_str->TIMER->fps_old_time = engine_data_str->TIMER->fps_cur_time;
+
+    if (_show_fps && engine_data_str->) {
+        char fps_string[256];
+
+        sprintf(fps_string, "%.f", fps);
+        return SDL_CreateTextureFromSurface(engine_data_str->SDL->renderer,
+            TTF_RenderText_Solid(engine_data_str->font, fps_string, font_color));
+    }
+
+    return NULL;
+}
+
+/**
+ * Initializes fps counter
+ **/
+
+void zenithra_initialize_timer(struct InEngineData *engine_data_str) {
+    engine_data_str->TIMER->update_cur_time = time(NULL);
 }
