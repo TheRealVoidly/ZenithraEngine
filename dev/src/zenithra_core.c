@@ -65,6 +65,7 @@ struct InEngineData *zenithra_init(int X, int Y, int flags, char *font_path, int
     zenithra_log_msg("Font initialized successfully");
 
     zenithra_init_movement_vals(engine_data_str);
+    engine_data_str->TIMER->update_old_time = time(NULL);
 
     engine_data_str->obj_number = 0;
 
@@ -360,21 +361,14 @@ SDL_Texture *zenithra_update_and_display_fps(struct InEngineData *engine_data_st
 
     engine_data_str->TIMER->fps_old_time = engine_data_str->TIMER->fps_cur_time;
 
-    if (_show_fps && engine_data_str->) {
+    if (_show_fps && time(NULL) - engine_data_str->TIMER->update_old_time >= 1) {
+        engine_data_str->TIMER->update_old_time = time(NULL);
         char fps_string[256];
 
         sprintf(fps_string, "%.f", fps);
         return SDL_CreateTextureFromSurface(engine_data_str->SDL->renderer,
-            TTF_RenderText_Solid(engine_data_str->font, fps_string, font_color));
+            TTF_RenderUTF8_Solid(engine_data_str->font, fps_string, font_color));
     }
 
     return NULL;
-}
-
-/**
- * Initializes fps counter
- **/
-
-void zenithra_initialize_timer(struct InEngineData *engine_data_str) {
-    engine_data_str->TIMER->update_cur_time = time(NULL);
 }
