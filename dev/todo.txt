@@ -2,23 +2,11 @@
 TODO
 -------------------------------------------------------
 
--- Write faces to texture instead of direct buffer
-
 -- Backface culling and loading faces and objects in order
-
--- Scale fps counter correctly
-
--- Is this correct?
-if (-X_cam >= -max_X_at_Z && -X_cam <= max_X_at_Z || -Y_cam >= -max_Y_at_Z && -Y_cam <= max_Y_at_Z) {
-        // Point is directly behind camera 'inside' the FOV
-        Honesly probably just pass it though chatgipity
+-- If 1+ points of a face are visible, render that face, otherwise don't
 
 -- Movement
 
--- Eventually move some stuff from movement_vals to char_vals
-
--- Do I need point buffer?
-
 -- Make an in-engine console
 
--- Make fps counter toggleable
+-- Eventually move some stuff from movement_vals to char_vals

@@ -1,4 +1,3 @@
-#include <stdint.h>
 #ifdef __linux__
 #include <SDL2/SDL_syswm.h>
 #include <X11/Xatom.h>
@@ -13,22 +12,14 @@
 #include <windows.h>
 #endif
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_pixels.h>
-#include <SDL2/SDL_rect.h>
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_scancode.h>
-#include <SDL2/SDL_surface.h>
 #include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_video.h>
 
 #include "zenithra_debug.h"
-#include <cglm/cglm.h>
-#include <stddef.h>
+#include <stdbool.h>
 #include <time.h>
 
 extern bool program_should_quit;
 extern bool _dev_mode;
-extern bool _show_fps;
 
 // Flags
 #define DEV_MODE                                                                                             \
@@ -57,8 +48,10 @@ extern bool _show_fps;
 //-----------------------------------------------
 
 struct TempNormCoords {
-    float norm_X;
-    float norm_Y;
+    bool out_of_view;
+
+    float norm_x;
+    float norm_y;
 };
 
 typedef struct ObjectVerticeData {
@@ -81,9 +74,9 @@ typedef struct ObjectList {
 //-----------------------------------------------
 
 typedef struct MovementEngineData {
-    double cam_X;
-    double cam_Y;
-    double cam_Z;
+    double cam_x;
+    double cam_y;
+    double cam_z;
 
     float cam_yaw_rad;   // Rotates around Y-axis
     float cam_pitch_rad; // Rotates around X-axis
@@ -91,8 +84,8 @@ typedef struct MovementEngineData {
     float vFOV_rad;
     float hFOV_rad;
 
-    double Z_near;
-    double Z_far;
+    double z_near;
+    double z_far;
 
     float look_speed;
 
@@ -135,13 +128,14 @@ struct InEngineData {
 
     unsigned int obj_number;
 
-    int window_X;
-    int window_Y;
+    int window_x;
+    int window_y;
 
-    int renderer_X;
-    int renderer_Y;
+    int renderer_x;
+    int renderer_y;
 
     bool focus_lost;
+    bool fps_enabled;
 
     uint64_t mem_usage;
     uint64_t old_mem_usage;
@@ -158,7 +152,7 @@ int _kbhit();
 
 void zenithra_signal_handle(int sig);
 void zenithra_free(struct InEngineData *engine_data_str, void **pp, size_t size);
-struct InEngineData *zenithra_init(int X, int Y, int flags, char *font_path, int font_size);
+struct InEngineData *zenithra_init(int x, int y, int flags, char *font_path, int font_size);
 void zenithra_destroy(struct InEngineData *engine_data_str);
 void zenithra_critical_error_occured(struct InEngineData *engine_data_str,
     char *file_name,
@@ -175,6 +169,7 @@ void *zenithra_realloc(struct InEngineData *engine_data_str,
     char *_file,
     int _line);
 SDL_Texture *zenithra_update_and_display_fps(struct InEngineData *engine_data_str);
+void zenithra_update(struct InEngineData *engine_data_str);
 
 //-----------------------------------------------
 // Movement Funcs
@@ -200,5 +195,5 @@ void zenithra_save_points_for_rendering(struct InEngineData *engine_data_str,
 int zenithra_load_object(struct InEngineData *engine_data_str, char *file_name);
 void zenithra_destroy_object(struct InEngineData *engine_data_str, int index);
 struct TempNormCoords *
-zenithra_normalize_vertice(struct InEngineData *engine_data_str, double Xw, double Yw, double Zw);
+zenithra_normalize_vertice(struct InEngineData *engine_data_str, double xw, double yw, double zw);
 void zenithra_render_object(struct InEngineData *engine_data_str, int index);

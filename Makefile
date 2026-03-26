@@ -12,7 +12,7 @@ LDFLAGS_LINUX = -rdynamic $(SDL_FLAGS_LINUX) -lm -lX11 -lSDL2_ttf -O3 -march=nat
 LDFLAGS_WIN = -lmingw32 $(SDL_FLAGS_WIN) -lmsvcrt -O3 -march=native
 
 # Source files
-SRC = zenithra_main zenithra_core zenithra_debug zenithra_movement zenithra_events zenithra_graphics zenithra_editor
+SRC = zenithra_main zenithra_core zenithra_debug zenithra_movement zenithra_events zenithra_graphics
 
 SRC_DIR = dev/src
 OBJ_LINUX = $(addprefix $(SRC_DIR)/, $(addsuffix .o, $(SRC)))

@@ -1,19 +1,19 @@
 #include "zenithra_core.h"
 
 void zenithra_init_movement_vals(struct InEngineData *engine_data_str) {
-    engine_data_str->MOVE->cam_X = 2.0;
-    engine_data_str->MOVE->cam_Y = 1.5;
-    engine_data_str->MOVE->cam_Z = -4.0;
+    engine_data_str->MOVE->cam_x = 2.0;
+    engine_data_str->MOVE->cam_y = 1.5;
+    engine_data_str->MOVE->cam_z = -4.0;
 
-    engine_data_str->MOVE->cam_yaw_rad = 0.0;   // Rotates around Y-axis
-    engine_data_str->MOVE->cam_pitch_rad = 0.0; // Rotates around X-axis
+    engine_data_str->MOVE->cam_yaw_rad = M_PI;   // Rotates around Y-axis
+    engine_data_str->MOVE->cam_pitch_rad = M_PI; // Rotates around X-axis
 
     engine_data_str->MOVE->vFOV_rad = 90 * M_PI / 180.0;
-    double aspect = (double)engine_data_str->renderer_X / (double)engine_data_str->renderer_Y;
+    double aspect = (double)engine_data_str->renderer_x / (double)engine_data_str->renderer_y;
     engine_data_str->MOVE->hFOV_rad = 2.0 * atan(aspect * tan(engine_data_str->MOVE->vFOV_rad / 2.0));
 
-    engine_data_str->MOVE->Z_far = engine_data_str->MOVE->cam_Z + 100.0;
-    engine_data_str->MOVE->Z_near = engine_data_str->MOVE->cam_Z + 0.01;
+    engine_data_str->MOVE->z_far = engine_data_str->MOVE->cam_z + 100.0;
+    engine_data_str->MOVE->z_near = engine_data_str->MOVE->cam_z + 0.01;
 
     engine_data_str->MOVE->look_speed = 0.001f;
 
@@ -38,17 +38,22 @@ void zenithra_calculate_yaw_pitch(struct InEngineData *engine_data_str) {
     int cursor_Y[1];
 
     SDL_PumpEvents();
-    SDL_GetMouseState(&cursor_X[0], &cursor_Y[0]);
-    SDL_WarpMouseInWindow(
-        engine_data_str->SDL->window, engine_data_str->window_X / 2, engine_data_str->window_Y / 2);
+    if (!engine_data_str->focus_lost) {
+        SDL_GetMouseState(&cursor_X[0], &cursor_Y[0]);
+        SDL_WarpMouseInWindow(
+            engine_data_str->SDL->window, engine_data_str->window_x / 2, engine_data_str->window_y / 2);
 
-    engine_data_str->MOVE->cam_yaw_rad +=
-        engine_data_str->MOVE->look_speed * (float)(engine_data_str->window_X / 2.0f - cursor_X[0]);
+        engine_data_str->MOVE->cam_yaw_rad +=
+            engine_data_str->MOVE->look_speed * (float)(engine_data_str->window_x / 2.0f - cursor_X[0]);
 
-    engine_data_str->MOVE->cam_pitch_rad +=
-        engine_data_str->MOVE->look_speed * (float)(engine_data_str->window_Y / 2.0f - cursor_Y[0]);
-    if (engine_data_str->MOVE->cam_pitch_rad < 4 * M_PI / 9) {
-        engine_data_str->MOVE->cam_pitch_rad = 4 * M_PI / 9;
+        engine_data_str->MOVE->cam_pitch_rad -= // Y world is reversed? Idk, too lazy to look into it
+            engine_data_str->MOVE->look_speed * (float)(engine_data_str->window_y / 2.0f - cursor_Y[0]);
+        if (engine_data_str->MOVE->cam_pitch_rad < 4 * M_PI / 9) {
+            engine_data_str->MOVE->cam_pitch_rad = 4 * M_PI / 9;
+        }
+        if (engine_data_str->MOVE->cam_pitch_rad > 14 * M_PI / 9) {
+            engine_data_str->MOVE->cam_pitch_rad = 14 * M_PI / 9;
+        }
     }
 }
 

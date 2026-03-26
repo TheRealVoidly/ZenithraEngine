@@ -141,3 +141,52 @@ void zenithra_save_points_for_rendering(struct InEngineData *engine_data_str,
         node = node->next;
     }
 }
+
+/**
+ * Function defined only for Linux
+ * Handles real-time console input
+ **/
+
+int _kbhit() {
+    struct timeval tv = {0L, 0L};
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(0, &fds); // File descriptor 0 = stdin
+    return select(1, &fds, NULL, NULL, &tv);
+}
+
+/**
+ * Save object or buffer into SDL framebuffer
+ **/
+
+void zenithra_draw_points(struct InEngineData *engine_data_str, SDL_Vertex *vertices, int num) {
+    void *pixels; // pixels is a pointer to the framebuffer
+    int pitch;    // pitch is the number of bytes per row
+
+    if (SDL_LockTexture(engine_data_str->frame_texture, NULL, &pixels, &pitch) == 0) {
+        Uint32 *pixel_ptr = (Uint32 *)pixels;
+        int fourth_pitch = pitch / 4;
+
+        for (int i = 0; i < num; i += 3) {
+            Uint32 combined = ((Uint32)vertices[i].color.r << 24) | ((Uint32)vertices[i].color.g << 16) |
+                ((Uint32)vertices[i].color.b << 8) | ((Uint32)vertices[i].color.a);
+            pixel_ptr[(uint32_t)(vertices[i].position.y * engine_data_str->renderer_y) * fourth_pitch +
+                (uint32_t)(vertices[i].position.x * engine_data_str->renderer_x)] = combined;
+        }
+        SDL_UnlockTexture(engine_data_str->frame_texture);
+    }
+}
+
+/**
+ * Called once after drawing every frame to prevent ghost pixels
+ **/
+
+void zenithra_clear_texture(struct InEngineData *engine_data_str) {
+    SDL_Surface *surface;
+
+    SDL_LockTextureToSurface(engine_data_str->frame_texture, NULL, &surface);
+
+    SDL_FillRect(surface, NULL, SDL_MapRGBA(NULL, 0, 0, 0, 255));
+
+    SDL_UnlockTexture(engine_data_str->frame_texture);
+}

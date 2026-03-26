@@ -3,7 +3,6 @@
 
 bool program_should_quit = false;
 bool _dev_mode = false;
-bool _show_fps = false;
 
 /**
  * Initializes the engine.
@@ -20,7 +19,7 @@ bool _show_fps = false;
  * terminate.
  **/
 
-struct InEngineData *zenithra_init(int X, int Y, int flags, char *font_path, int font_size) {
+struct InEngineData *zenithra_init(int x, int y, int flags, char *font_path, int font_size) {
     signal(SIGSEGV, zenithra_signal_handle);
     signal(SIGINT, zenithra_signal_handle);
     signal(SIGTERM, zenithra_signal_handle);
@@ -43,12 +42,13 @@ struct InEngineData *zenithra_init(int X, int Y, int flags, char *font_path, int
     engine_data_str->TIMER =
         zenithra_malloc(engine_data_str, sizeof *engine_data_str->TIMER, __FILE__, __LINE__);
 
-    engine_data_str->focus_lost = false; // Window starts in focus
+    engine_data_str->focus_lost = false;  // Window starts in focus
+    engine_data_str->fps_enabled = false; // FPS counter invisible
 
     zenithra_log_msg("Zenithra engine started");
 
-    engine_data_str->window_X = X;
-    engine_data_str->window_Y = Y;
+    engine_data_str->window_x = x;
+    engine_data_str->window_y = y;
 
     if (flags & DEV_MODE) {
         _dev_mode = true;
@@ -82,8 +82,8 @@ void zenithra_initialize_sdl(struct InEngineData *engine_data_str) {
     engine_data_str->SDL->window = SDL_CreateWindow("Zenithra Engine",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        engine_data_str->window_X,
-        engine_data_str->window_Y,
+        engine_data_str->window_x,
+        engine_data_str->window_y,
         SDL_WINDOW_SHOWN);
     if (!engine_data_str->SDL->window) {
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
@@ -97,7 +97,7 @@ void zenithra_initialize_sdl(struct InEngineData *engine_data_str) {
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
     SDL_GetRendererOutputSize(
-        engine_data_str->SDL->renderer, &engine_data_str->renderer_X, &engine_data_str->renderer_Y);
+        engine_data_str->SDL->renderer, &engine_data_str->renderer_x, &engine_data_str->renderer_y);
 
 #ifdef __linux__
     zenithra_disable_bypass_compositor(engine_data_str->SDL->window);
@@ -109,8 +109,8 @@ void zenithra_initialize_sdl(struct InEngineData *engine_data_str) {
     engine_data_str->frame_texture = SDL_CreateTexture(engine_data_str->SDL->renderer,
         SDL_PIXELFORMAT_RGBA8888,
         SDL_TEXTUREACCESS_STREAMING,
-        engine_data_str->renderer_X,
-        engine_data_str->renderer_Y);
+        engine_data_str->renderer_x,
+        engine_data_str->renderer_y);
 
     if (TTF_Init() == -1) {
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, TTF_GetError());
@@ -130,6 +130,7 @@ void zenithra_destroy(struct InEngineData *engine_data_str) {
     SDL_SetRelativeMouseMode(SDL_FALSE);
     SDL_SetWindowGrab(engine_data_str->SDL->window, SDL_FALSE);
 
+    SDL_DestroyTexture(engine_data_str->frame_texture);
     SDL_DestroyRenderer(engine_data_str->SDL->renderer);
     SDL_DestroyWindow(engine_data_str->SDL->window);
 
@@ -245,19 +246,6 @@ void zenithra_signal_handle(int sig) {
 
 /**
  * Function defined only for Linux
- * Handles real-time console input
- **/
-
-int _kbhit() {
-    struct timeval tv = {0L, 0L};
-    fd_set fds;
-    FD_ZERO(&fds);
-    FD_SET(0, &fds); // File descriptor 0 = stdin
-    return select(1, &fds, NULL, NULL, &tv);
-}
-
-/**
- * Function defined only for Linux
  * Disables compositor bypass if one is active
  **/
 
@@ -340,6 +328,10 @@ void zenithra_check_and_display_memory_change(struct InEngineData *engine_data_s
 SDL_Texture *zenithra_update_and_display_fps(struct InEngineData *engine_data_str) {
     double elapsed_ns, fps;
 
+    SDL_Surface *surf;
+
+    SDL_Texture *tex;
+
     SDL_Color font_color;
     font_color.r = 255;
     font_color.g = 255;
@@ -361,14 +353,56 @@ SDL_Texture *zenithra_update_and_display_fps(struct InEngineData *engine_data_st
 
     engine_data_str->TIMER->fps_old_time = engine_data_str->TIMER->fps_cur_time;
 
-    if (_show_fps && time(NULL) - engine_data_str->TIMER->update_old_time >= 1) {
+    if (time(NULL) - engine_data_str->TIMER->update_old_time >= 1) {
         engine_data_str->TIMER->update_old_time = time(NULL);
         char fps_string[256];
 
         sprintf(fps_string, "%.f", fps);
-        return SDL_CreateTextureFromSurface(engine_data_str->SDL->renderer,
-            TTF_RenderUTF8_Solid(engine_data_str->font, fps_string, font_color));
+        surf = TTF_RenderUTF8_Solid(engine_data_str->font, fps_string, font_color);
+
+        tex = SDL_CreateTextureFromSurface(engine_data_str->SDL->renderer, surf);
+        SDL_FreeSurface(surf);
+        return tex;
     }
 
     return NULL;
+}
+
+/**
+ * Function should be called once every iteration of the main loop
+ * Takes care of all engine functionalities
+ **/
+
+void zenithra_update(struct InEngineData *engine_data_str) {
+    SDL_Rect fps_rect; // FPS counter position
+    fps_rect.x = 0;
+    fps_rect.y = 0;
+    fps_rect.w = 80;
+    fps_rect.h = 20;
+
+    SDL_Texture *temp_fps_texture;
+    SDL_Texture *long_fps_texture;
+
+    program_should_quit = zenithra_handle_event_poll(engine_data_str); // Events and inputs
+    zenithra_calculate_yaw_pitch(engine_data_str);
+
+    SDL_RenderClear(engine_data_str->SDL->renderer);
+
+    zenithra_render_object(engine_data_str, 0); // This may be game resposibility, Idk yet
+
+    if (engine_data_str->fps_enabled) { // FPS counter self explanatory
+        if ((temp_fps_texture = zenithra_update_and_display_fps(engine_data_str))) {
+            SDL_DestroyTexture(long_fps_texture);
+            long_fps_texture = temp_fps_texture;
+        }
+        SDL_RenderCopy(engine_data_str->SDL->renderer, long_fps_texture, NULL, &fps_rect);
+    }
+
+    SDL_RenderPresent(engine_data_str->SDL->renderer); // Render frame
+
+    zenithra_check_and_display_memory_change(engine_data_str); // Memory usage tracking
+
+    if (program_should_quit) {
+        SDL_DestroyTexture(long_fps_texture);
+    }
 }

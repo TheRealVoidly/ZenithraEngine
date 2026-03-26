@@ -18,16 +18,16 @@ static void _set_vertice(struct InEngineData *engine_data_str, SDL_Vertex *verti
  **/
 
 struct TempNormCoords *
-zenithra_normalize_vertice(struct InEngineData *engine_data_str, double Xw, double Yw, double Zw) {
-    double Xr = Xw - engine_data_str->MOVE->cam_X; // Point coordinates relative to camera
-    double Yr = Yw - engine_data_str->MOVE->cam_Y;
-    double Zr = Zw - engine_data_str->MOVE->cam_Z;
+zenithra_normalize_vertice(struct InEngineData *engine_data_str, double xw, double yw, double zw) {
+    double xr = xw - engine_data_str->MOVE->cam_x; // Point coordinates relative to camera
+    double yr = yw - engine_data_str->MOVE->cam_y;
+    double zr = zw - engine_data_str->MOVE->cam_z;
 
-    double X_cam = Xr * cos(engine_data_str->MOVE->cam_yaw_rad) -
-        Zr * sin(engine_data_str->MOVE->cam_yaw_rad); // Yaw rotation around Y-axis
-    double Y_cam = Yr;
+    double X_cam = xr * cos(engine_data_str->MOVE->cam_yaw_rad) -
+        zr * sin(engine_data_str->MOVE->cam_yaw_rad); // Yaw rotation around Y-axis
+    double Y_cam = yr;
     double Z_cam =
-        Xr * sin(engine_data_str->MOVE->cam_yaw_rad) + Zr * cos(engine_data_str->MOVE->cam_yaw_rad);
+        xr * sin(engine_data_str->MOVE->cam_yaw_rad) + zr * cos(engine_data_str->MOVE->cam_yaw_rad);
 
     double Y_cam2 = Y_cam * cos(engine_data_str->MOVE->cam_pitch_rad) -
         Z_cam * sin(engine_data_str->MOVE->cam_pitch_rad); // Pitch rotation around X-axis
@@ -36,35 +36,23 @@ zenithra_normalize_vertice(struct InEngineData *engine_data_str, double Xw, doub
     Y_cam = Y_cam2;
     Z_cam = Z_cam2;
 
-    /*if (Z_cam < engine_data_str->MOVE->Z_near) {
-        // Point is between camerra and the near plane
-        return NULL;
-    }
-    if (Z_cam > engine_data_str->MOVE->Z_far) {
-        // Point is behind the far plane
-        return NULL;
-    }*/
-
     double max_X_at_Z = Z_cam * tan(engine_data_str->MOVE->hFOV_rad / 2.0); // Find maximum visible X at Z_cam
     double max_Y_at_Z = Z_cam * tan(engine_data_str->MOVE->vFOV_rad / 2.0); // Find maximum visible Y at Z_cam
-    if (X_cam < -max_X_at_Z || X_cam > max_X_at_Z || Y_cam < -max_Y_at_Z || Y_cam > max_Y_at_Z) {
-        // Point is outside FOV
-        // return NULL;
-    }
 
     struct TempNormCoords *temp_norm_coords = NULL;
     temp_norm_coords = zenithra_malloc(engine_data_str, sizeof *temp_norm_coords, __FILE__, __LINE__);
 
-    if (-X_cam >= -max_X_at_Z && -X_cam <= max_X_at_Z || -Y_cam >= -max_Y_at_Z && -Y_cam <= max_Y_at_Z) {
-        // Point is directly behind camera 'inside' the FOV
-        temp_norm_coords->norm_X = 0; // Normalize X and Y to [0,1]
-        temp_norm_coords->norm_Y = 0;
+    if (X_cam < -max_X_at_Z || X_cam > max_X_at_Z || Y_cam < -max_Y_at_Z || Y_cam > max_Y_at_Z) {
+        // Point is outside FOV
 
-        return temp_norm_coords;
+        temp_norm_coords->out_of_view = true;
+        temp_norm_coords->norm_x = (X_cam / max_X_at_Z + 1.0) / 2.0; // Normalize X and Y to [0,1]
+        temp_norm_coords->norm_y = (Y_cam / max_Y_at_Z + 1.0) / 2.0;
+    } else {
+        temp_norm_coords->out_of_view = false;
+        temp_norm_coords->norm_x = (X_cam / max_X_at_Z + 1.0) / 2.0; // Normalize X and Y to [0,1]
+        temp_norm_coords->norm_y = (Y_cam / max_Y_at_Z + 1.0) / 2.0;
     }
-
-    temp_norm_coords->norm_X = (X_cam / max_X_at_Z + 1.0) / 2.0; // Normalize X and Y to [0,1]
-    temp_norm_coords->norm_Y = (Y_cam / max_Y_at_Z + 1.0) / 2.0;
 
     return temp_norm_coords;
 }
@@ -308,11 +296,20 @@ static void _set_vertice(struct InEngineData *engine_data_str, SDL_Vertex *verti
     struct TempNormCoords *temp_norm_coords;
     temp_norm_coords = zenithra_normalize_vertice(engine_data_str, temp.x, temp.y, temp.z);
 
-    vertices[i].position.x = (int)round(temp_norm_coords->norm_X * engine_data_str->renderer_X);
-    vertices[i].position.y = (int)round(temp_norm_coords->norm_Y * engine_data_str->renderer_Y);
-    vertices[i].color.r = 255;
-    vertices[i].color.g = 0;
-    vertices[i].color.b = 0;
-    vertices[i].color.a = 255;
+    if (!temp_norm_coords->out_of_view) {
+        vertices[i].position.x = temp_norm_coords->norm_x * engine_data_str->renderer_x;
+        vertices[i].position.y = temp_norm_coords->norm_y * engine_data_str->renderer_y;
+        vertices[i].color.r = 255;
+        vertices[i].color.g = 0;
+        vertices[i].color.b = 0;
+        vertices[i].color.a = 255;
+    } else {
+        vertices[i].position.x = temp_norm_coords->norm_x * engine_data_str->renderer_x;
+        vertices[i].position.y = temp_norm_coords->norm_y * engine_data_str->renderer_y;
+        vertices[i].color.r = 255;
+        vertices[i].color.g = 0;
+        vertices[i].color.b = 0;
+        vertices[i].color.a = 255;
+    }
     zenithra_free(engine_data_str, (void **)&temp_norm_coords, sizeof *temp_norm_coords);
 }
