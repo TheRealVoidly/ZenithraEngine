@@ -29,10 +29,10 @@ zenithra_normalize_vertice(struct InEngineData *engine_data_str, double xw, doub
     double Z_cam =
         xr * sin(engine_data_str->MOVE->cam_yaw_rad) + zr * cos(engine_data_str->MOVE->cam_yaw_rad);
 
-    double Y_cam2 = Y_cam * cos(engine_data_str->MOVE->cam_pitch_rad) -
-        Z_cam * sin(engine_data_str->MOVE->cam_pitch_rad); // Pitch rotation around X-axis
-    double Z_cam2 =
-        Y_cam * sin(engine_data_str->MOVE->cam_pitch_rad) + Z_cam * cos(engine_data_str->MOVE->cam_pitch_rad);
+    double Y_cam2 = Y_cam * cos(engine_data_str->MOVE->real_cam_pitch_rad) -
+        Z_cam * sin(engine_data_str->MOVE->real_cam_pitch_rad); // Pitch rotation around X-axis
+    double Z_cam2 = Y_cam * sin(engine_data_str->MOVE->real_cam_pitch_rad) +
+        Z_cam * cos(engine_data_str->MOVE->real_cam_pitch_rad);
     Y_cam = Y_cam2;
     Z_cam = Z_cam2;
 
@@ -42,16 +42,21 @@ zenithra_normalize_vertice(struct InEngineData *engine_data_str, double xw, doub
     struct TempNormCoords *temp_norm_coords = NULL;
     temp_norm_coords = zenithra_malloc(engine_data_str, sizeof *temp_norm_coords, __FILE__, __LINE__);
 
-    if (X_cam < -max_X_at_Z || X_cam > max_X_at_Z || Y_cam < -max_Y_at_Z || Y_cam > max_Y_at_Z) {
-        // Point is outside FOV
+    temp_norm_coords->out_of_view = true;
 
-        temp_norm_coords->out_of_view = true;
-        temp_norm_coords->norm_x = (X_cam / max_X_at_Z + 1.0) / 2.0; // Normalize X and Y to [0,1]
-        temp_norm_coords->norm_y = (Y_cam / max_Y_at_Z + 1.0) / 2.0;
-    } else {
-        temp_norm_coords->out_of_view = false;
-        temp_norm_coords->norm_x = (X_cam / max_X_at_Z + 1.0) / 2.0; // Normalize X and Y to [0,1]
-        temp_norm_coords->norm_y = (Y_cam / max_Y_at_Z + 1.0) / 2.0;
+    if (-X_cam < -max_X_at_Z && -X_cam > max_X_at_Z || -Y_cam < -max_Y_at_Z && -Y_cam > max_Y_at_Z) {
+        if (X_cam < -max_X_at_Z || X_cam > max_X_at_Z || Y_cam < -max_Y_at_Z || Y_cam > max_Y_at_Z) {
+            // Point is outside FOV && NOT behind camera
+
+            temp_norm_coords->out_of_view = true;
+            temp_norm_coords->norm_x = (X_cam / max_X_at_Z + 1.0) / 2.0; // Normalize X and Y to [0,1]
+            temp_norm_coords->norm_y = (Y_cam / max_Y_at_Z + 1.0) / 2.0;
+        } else {
+            // Point is inside FOV
+            temp_norm_coords->out_of_view = false;
+            temp_norm_coords->norm_x = (X_cam / max_X_at_Z + 1.0) / 2.0; // Normalize X and Y to [0,1]
+            temp_norm_coords->norm_y = (Y_cam / max_Y_at_Z + 1.0) / 2.0;
+        }
     }
 
     return temp_norm_coords;

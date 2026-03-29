@@ -3,6 +3,7 @@
 
 bool program_should_quit = false;
 bool _dev_mode = false;
+bool _x11 = false;
 
 /**
  * Initializes the engine.
@@ -99,9 +100,9 @@ void zenithra_initialize_sdl(struct InEngineData *engine_data_str) {
     SDL_GetRendererOutputSize(
         engine_data_str->SDL->renderer, &engine_data_str->renderer_x, &engine_data_str->renderer_y);
 
-#ifdef __linux__
-    zenithra_disable_bypass_compositor(engine_data_str->SDL->window);
-#endif
+    if (_x11) {
+        zenithra_disable_bypass_compositor(engine_data_str->SDL->window);
+    }
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
     SDL_SetRenderDrawBlendMode(engine_data_str->SDL->renderer, SDL_BLENDMODE_BLEND);

@@ -20,6 +20,7 @@
 
 extern bool program_should_quit;
 extern bool _dev_mode;
+extern bool _x11;
 
 // Flags
 #define DEV_MODE                                                                                             \
@@ -78,8 +79,9 @@ typedef struct MovementEngineData {
     double cam_y;
     double cam_z;
 
-    float cam_yaw_rad;   // Rotates around Y-axis
-    float cam_pitch_rad; // Rotates around X-axis
+    float cam_yaw_rad;        // Rotates around Y-axis, used for actual calculations
+    float cam_pitch_rad;      // Rotates around X-axis, used for calculating camera movement
+    float real_cam_pitch_rad; // Used for actual calculations
 
     float vFOV_rad;
     float hFOV_rad;

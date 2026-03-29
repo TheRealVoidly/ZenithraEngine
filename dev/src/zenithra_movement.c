@@ -46,7 +46,7 @@ void zenithra_calculate_yaw_pitch(struct InEngineData *engine_data_str) {
         engine_data_str->MOVE->cam_yaw_rad +=
             engine_data_str->MOVE->look_speed * (float)(engine_data_str->window_x / 2.0f - cursor_X[0]);
 
-        engine_data_str->MOVE->cam_pitch_rad -= // Y world is reversed? Idk, too lazy to look into it
+        engine_data_str->MOVE->cam_pitch_rad +=
             engine_data_str->MOVE->look_speed * (float)(engine_data_str->window_y / 2.0f - cursor_Y[0]);
         if (engine_data_str->MOVE->cam_pitch_rad < 4 * M_PI / 9) {
             engine_data_str->MOVE->cam_pitch_rad = 4 * M_PI / 9;
@@ -54,6 +54,10 @@ void zenithra_calculate_yaw_pitch(struct InEngineData *engine_data_str) {
         if (engine_data_str->MOVE->cam_pitch_rad > 14 * M_PI / 9) {
             engine_data_str->MOVE->cam_pitch_rad = 14 * M_PI / 9;
         }
+
+        engine_data_str->MOVE->real_cam_pitch_rad =
+            -engine_data_str->MOVE->cam_pitch_rad; // Default -y is up and +y is down, this reverses it so
+                                                   // it's the 'correct' way around
     }
 }
 
