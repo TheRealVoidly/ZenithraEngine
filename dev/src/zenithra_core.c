@@ -389,7 +389,9 @@ void zenithra_update(struct InEngineData *engine_data_str) {
 
     SDL_RenderClear(engine_data_str->SDL->renderer);
 
-    zenithra_render_object(engine_data_str, 0); // This may be game resposibility, Idk yet
+    if (engine_data_str->obj_number > 0) {
+        zenithra_render_object(engine_data_str, 0); // This may be game resposibility, Idk yet
+    }
 
     if (engine_data_str->fps_enabled) { // FPS counter self explanatory
         if ((temp_fps_texture = zenithra_update_and_display_fps(engine_data_str))) {

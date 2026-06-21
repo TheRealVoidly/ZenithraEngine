@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
 }
 
 void zenithra_test_editor(struct InEngineData *engine_data_str) {
-    zenithra_load_object(engine_data_str, "cube.zbj");
+    zenithra_load_object(engine_data_str, "cube.obj");
 
     do {
         // Game logic happens here:

@@ -70,7 +70,7 @@ zenithra_normalize_vertice(struct InEngineData *engine_data_str, double xw, doub
 
 void zenithra_render_object(struct InEngineData *engine_data_str, int index) {
     int num_of_faces =
-        (engine_data_str->ZBJ_LIST[index].face->size / sizeof *engine_data_str->ZBJ_LIST[index].face);
+        (engine_data_str->OBJ_LIST[index].face->size / sizeof *engine_data_str->OBJ_LIST[index].face);
 
     SDL_Vertex *vertices =
         zenithra_malloc(engine_data_str, num_of_faces * 3 * sizeof *vertices, __FILE__, __LINE__);
@@ -89,7 +89,7 @@ void zenithra_render_object(struct InEngineData *engine_data_str, int index) {
 
 /**
  * Function initializes memory for new
- * object in ZBJ_LIST and saves all the
+ * object in OBJ_LIST and saves all the
  * data for that object Index of new
  * object is always
  * engine_data_str->obj_number
@@ -114,20 +114,20 @@ int zenithra_load_object(struct InEngineData *engine_data_str, char *file_name) 
         return -1;
     }
 
-    ZBJ_LIST *list_node = NULL;
+    OBJ_LIST *list_node = NULL;
 
     if (engine_data_str->obj_number == 0) {
         list_node = zenithra_malloc(engine_data_str, sizeof *list_node, __FILE__, __LINE__);
     } else {
         list_node = zenithra_realloc(engine_data_str,
-            engine_data_str->ZBJ_LIST,
+            engine_data_str->OBJ_LIST,
             (engine_data_str->obj_number + 1) * sizeof *list_node,
             (engine_data_str->obj_number) * sizeof *list_node,
             __FILE__,
             __LINE__);
     }
 
-    engine_data_str->ZBJ_LIST = list_node;
+    engine_data_str->OBJ_LIST = list_node;
 
     char line[256];
     int n_vertices = 1;
@@ -179,8 +179,8 @@ void zenithra_destroy_object(struct InEngineData *engine_data_str, int index) {
             }
 
             zenithra_free(engine_data_str,
-                (void **)&engine_data_str->ZBJ_LIST,
-                (sizeof *engine_data_str->ZBJ_LIST) * (engine_data_str->obj_number));
+                (void **)&engine_data_str->OBJ_LIST,
+                (sizeof *engine_data_str->OBJ_LIST) * (engine_data_str->obj_number));
         }
     } else {
         if (engine_data_str->obj_number < index) {
@@ -188,21 +188,21 @@ void zenithra_destroy_object(struct InEngineData *engine_data_str, int index) {
 
             for (int i = index; i < engine_data_str->obj_number; i++) {
                 if (i + 1 < engine_data_str->obj_number) {
-                    engine_data_str->ZBJ_LIST[i] = engine_data_str->ZBJ_LIST[i + 1];
+                    engine_data_str->OBJ_LIST[i] = engine_data_str->OBJ_LIST[i + 1];
                 }
             }
 
             if (engine_data_str->obj_number > 1) {
-                engine_data_str->ZBJ_LIST = zenithra_realloc(engine_data_str,
-                    engine_data_str->ZBJ_LIST,
-                    (engine_data_str->obj_number - 1) * sizeof *engine_data_str->ZBJ_LIST,
-                    (engine_data_str->obj_number) * sizeof *engine_data_str->ZBJ_LIST,
+                engine_data_str->OBJ_LIST = zenithra_realloc(engine_data_str,
+                    engine_data_str->OBJ_LIST,
+                    (engine_data_str->obj_number - 1) * sizeof *engine_data_str->OBJ_LIST,
+                    (engine_data_str->obj_number) * sizeof *engine_data_str->OBJ_LIST,
                     __FILE__,
                     __LINE__);
             } else {
                 zenithra_free(engine_data_str,
-                    (void **)&engine_data_str->ZBJ_LIST,
-                    (sizeof *engine_data_str->ZBJ_LIST) * (engine_data_str->obj_number));
+                    (void **)&engine_data_str->OBJ_LIST,
+                    (sizeof *engine_data_str->OBJ_LIST) * (engine_data_str->obj_number));
             }
             engine_data_str->obj_number--;
         }
@@ -215,16 +215,16 @@ void zenithra_destroy_object(struct InEngineData *engine_data_str, int index) {
 
 static void _free_object(struct InEngineData *engine_data_str, int index) {
     zenithra_free(engine_data_str,
-        (void **)&engine_data_str->ZBJ_LIST[index].face,
-        engine_data_str->ZBJ_LIST[index].face->size);
+        (void **)&engine_data_str->OBJ_LIST[index].face,
+        engine_data_str->OBJ_LIST[index].face->size);
     zenithra_free(engine_data_str,
-        (void **)&engine_data_str->ZBJ_LIST[index].vertice,
-        engine_data_str->ZBJ_LIST[index].vertice->size);
+        (void **)&engine_data_str->OBJ_LIST[index].vertice,
+        engine_data_str->OBJ_LIST[index].vertice->size);
 }
 
 static void _read_object(struct InEngineData *engine_data_str, int stage, int n, char line[256]) {
-    ZBJ_VERTICE_DATA *tmp_vertice_data = NULL;
-    ZBJ_FACE_DATA *tmp_face_data = NULL;
+    OBJ_VERTICE_DATA *tmp_vertice_data = NULL;
+    OBJ_FACE_DATA *tmp_face_data = NULL;
     float x, y, z;
     int f1, f2, f3;
     if (stage == 0) {
@@ -232,25 +232,25 @@ static void _read_object(struct InEngineData *engine_data_str, int stage, int n,
             tmp_vertice_data =
                 zenithra_malloc(engine_data_str, (n) * sizeof *tmp_vertice_data, __FILE__, __LINE__);
 
-            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice = tmp_vertice_data;
+            engine_data_str->OBJ_LIST[engine_data_str->obj_number].vertice = tmp_vertice_data;
         } else {
             tmp_vertice_data = zenithra_realloc(engine_data_str,
-                engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice,
+                engine_data_str->OBJ_LIST[engine_data_str->obj_number].vertice,
                 (n) * sizeof *tmp_vertice_data,
                 (n - 1) * sizeof *tmp_vertice_data,
                 __FILE__,
                 __LINE__);
             tmp_vertice_data->size = (n) * sizeof *tmp_vertice_data;
 
-            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice = tmp_vertice_data;
+            engine_data_str->OBJ_LIST[engine_data_str->obj_number].vertice = tmp_vertice_data;
         }
 
         tmp_vertice_data = NULL;
 
         if (sscanf(line, "%f %f %f", &x, &y, &z) == 3) {
-            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice[n - 1].x = x;
-            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice[n - 1].y = y;
-            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].vertice[n - 1].z = z;
+            engine_data_str->OBJ_LIST[engine_data_str->obj_number].vertice[n - 1].x = x;
+            engine_data_str->OBJ_LIST[engine_data_str->obj_number].vertice[n - 1].y = y;
+            engine_data_str->OBJ_LIST[engine_data_str->obj_number].vertice[n - 1].z = z;
 
             n++;
         }
@@ -260,25 +260,25 @@ static void _read_object(struct InEngineData *engine_data_str, int stage, int n,
         if (n == 1) {
             tmp_face_data = zenithra_malloc(engine_data_str, (n) * sizeof *tmp_face_data, __FILE__, __LINE__);
 
-            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face = tmp_face_data;
+            engine_data_str->OBJ_LIST[engine_data_str->obj_number].face = tmp_face_data;
         } else {
             tmp_face_data = zenithra_realloc(engine_data_str,
-                engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face,
+                engine_data_str->OBJ_LIST[engine_data_str->obj_number].face,
                 (n) * sizeof *tmp_face_data,
                 (n - 1) * sizeof *tmp_face_data,
                 __FILE__,
                 __LINE__);
             tmp_face_data->size = (n) * sizeof *tmp_face_data;
 
-            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face = tmp_face_data;
+            engine_data_str->OBJ_LIST[engine_data_str->obj_number].face = tmp_face_data;
         }
 
         tmp_face_data = NULL;
 
         if (sscanf(line, "%d %d %d", &f1, &f2, &f3) == 3) {
-            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face[n - 1].f1 = f1;
-            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face[n - 1].f2 = f2;
-            engine_data_str->ZBJ_LIST[engine_data_str->obj_number].face[n - 1].f3 = f3;
+            engine_data_str->OBJ_LIST[engine_data_str->obj_number].face[n - 1].f1 = f1;
+            engine_data_str->OBJ_LIST[engine_data_str->obj_number].face[n - 1].f2 = f2;
+            engine_data_str->OBJ_LIST[engine_data_str->obj_number].face[n - 1].f3 = f3;
 
             n++;
         }
@@ -286,16 +286,16 @@ static void _read_object(struct InEngineData *engine_data_str, int stage, int n,
 }
 
 static void _set_vertice(struct InEngineData *engine_data_str, SDL_Vertex *vertices, int index, int i) {
-    ZBJ_VERTICE_DATA temp;
+    OBJ_VERTICE_DATA temp;
 
     if (i % 3 == 0) {
-        temp = engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i / 3].f1 - 1];
+        temp = engine_data_str->OBJ_LIST[index].vertice[engine_data_str->OBJ_LIST[index].face[i / 3].f1 - 1];
     }
     if (i % 3 == 1) {
-        temp = engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i / 3].f2 - 1];
+        temp = engine_data_str->OBJ_LIST[index].vertice[engine_data_str->OBJ_LIST[index].face[i / 3].f2 - 1];
     }
     if (i % 3 == 2) {
-        temp = engine_data_str->ZBJ_LIST[index].vertice[engine_data_str->ZBJ_LIST[index].face[i / 3].f3 - 1];
+        temp = engine_data_str->OBJ_LIST[index].vertice[engine_data_str->OBJ_LIST[index].face[i / 3].f3 - 1];
     }
 
     struct TempNormCoords *temp_norm_coords;

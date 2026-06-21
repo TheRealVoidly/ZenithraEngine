@@ -2,6 +2,8 @@
 TODO
 -------------------------------------------------------
 
+-- Fix object loader
+
 -- Grid
 
 -- Backface culling and loading faces and objects in order

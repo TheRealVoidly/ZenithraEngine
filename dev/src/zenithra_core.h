@@ -58,17 +58,17 @@ struct TempNormCoords {
 typedef struct ObjectVerticeData {
     double x, y, z;
     size_t size;
-} ZBJ_VERTICE_DATA;
+} OBJ_VERTICE_DATA;
 
 typedef struct ObjectFaceData {
     uint32_t f1, f2, f3;
     size_t size;
-} ZBJ_FACE_DATA;
+} OBJ_FACE_DATA;
 
 typedef struct ObjectList {
-    ZBJ_FACE_DATA *face;
-    ZBJ_VERTICE_DATA *vertice;
-} ZBJ_LIST;
+    OBJ_FACE_DATA *face;
+    OBJ_VERTICE_DATA *vertice;
+} OBJ_LIST;
 
 //-----------------------------------------------
 // Movement Structs
@@ -122,7 +122,7 @@ typedef struct SDLEngineData {
 struct InEngineData {
     MOVE *MOVE;
     SDL *SDL;
-    ZBJ_LIST *ZBJ_LIST;
+    OBJ_LIST *OBJ_LIST;
     TIMER *TIMER;
 
     SDL_Texture *frame_texture;
