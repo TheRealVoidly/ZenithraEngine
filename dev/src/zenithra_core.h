@@ -12,21 +12,21 @@
 #include <windows.h>
 #endif
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_pixels.h>
-#include <SDL2/SDL_rect.h>
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_scancode.h>
-#include <SDL2/SDL_surface.h>
-#include <SDL2/SDL_video.h>
+#include <SDL2/SDL_ttf.h>
 
 #include "zenithra_debug.h"
-#include <cglm/cglm.h>
-#include <stddef.h>
+#include <stdbool.h>
+#include <time.h>
 
-// These have to be set before zenithra_init()
-extern bool DEV_MODE; // Set as true if creating a console (on Windows) is desired along-side dev statistics
-                      // like memory usage, default false
 extern bool program_should_quit;
+extern bool _dev_mode;
+extern bool _x11;
+
+// Flags
+#define DEV_MODE                                                                                             \
+    0x01                      // Pass to zenithra_init() if creating a console (on Windows) is desired
+                              // along-side dev statistics like memory usage
+#define BACKFACE_CULLING 0x02 // Pass to zenithra_init() if we want backface culling
 
 #ifdef _WIN32
 #if DEV_MODE
@@ -49,109 +49,98 @@ extern bool program_should_quit;
 //-----------------------------------------------
 
 struct TempNormCoords {
-    double norm_X;
-    double norm_Y;
+    bool out_of_view;
+
+    float norm_x;
+    float norm_y;
 };
-
-typedef struct PointBuffer {
-    int X;
-    int Y;
-
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-    Uint8 w;
-
-    struct PointBuffer *next;
-} POINT_BUF;
 
 typedef struct ObjectVerticeData {
     double x, y, z;
     size_t size;
-} ZBJ_VERTICE_DATA;
+} OBJ_VERTICE_DATA;
 
 typedef struct ObjectFaceData {
-    int f1, f2, f3;
+    uint32_t f1, f2, f3;
     size_t size;
-} ZBJ_FACE_DATA;
+} OBJ_FACE_DATA;
 
 typedef struct ObjectList {
-    ZBJ_FACE_DATA *face;
-    ZBJ_VERTICE_DATA *vertice;
-} ZBJ_LIST;
+    OBJ_FACE_DATA *face;
+    OBJ_VERTICE_DATA *vertice;
+} OBJ_LIST;
 
 //-----------------------------------------------
 // Movement Structs
 //-----------------------------------------------
 
 typedef struct MovementEngineData {
-    double cam_X;
-    double cam_Y;
-    double cam_Z;
+    double cam_x;
+    double cam_y;
+    double cam_z;
 
-    float cam_yaw_rad;   // Rotates around Y-axis
-    float cam_pitch_rad; // Rotates around X-axis
+    float cam_yaw_rad;        // Rotates around Y-axis, used for actual calculations
+    float cam_pitch_rad;      // Rotates around X-axis, used for calculating camera movement
+    float real_cam_pitch_rad; // Used for actual calculations
 
     float vFOV_rad;
     float hFOV_rad;
 
-    double Z_near;
-    double Z_far;
+    double z_near;
+    double z_far;
+
+    float look_speed;
+
+    float cam_speed;
+
+    float relaxed_walk_speed;
+    float walk_speed;
+    float run_speed;
+    float inertia;
+
+    uint32_t carry_weight;
+    uint32_t weight;
 } MOVE;
-
-//-----------------------------------------------
-// Interpreter Structs
-//-----------------------------------------------
-
-struct InterpreterVariable {
-    char variable_name[1024];
-
-    float f_value;
-
-    struct InterpreterVariable *next;
-};
-
-typedef struct ReadData {
-    char *command;
-    int fval;
-    int offset;
-
-    struct InterpreterVariable *iv;
-} INTERPRETER;
 
 //-----------------------------------------------
 // Core Structs
 //-----------------------------------------------
+
+typedef struct Timer {
+    struct timespec fps_old_time;
+    struct timespec fps_cur_time;
+
+    time_t update_cur_time;
+    time_t update_old_time;
+} TIMER;
 
 typedef struct SDLEngineData {
     SDL_Window *window;
     SDL_Renderer *renderer;
 } SDL;
 
-typedef struct KeysEngineData {
-    bool escape;
-} KEYS;
-
 struct InEngineData {
     MOVE *MOVE;
     SDL *SDL;
-    KEYS *KEYS;
-    INTERPRETER *INTERPRETER;
-    POINT_BUF *POINT_BUF;
-    ZBJ_LIST *ZBJ_LIST;
+    OBJ_LIST *OBJ_LIST;
+    TIMER *TIMER;
 
-    int obj_number;
+    SDL_Texture *frame_texture;
+    TTF_Font *font;
 
-    int window_X;
-    int window_Y;
+    unsigned int obj_number;
 
-    int renderer_X;
-    int renderer_Y;
+    int window_x;
+    int window_y;
+
+    int renderer_x;
+    int renderer_y;
 
     bool focus_lost;
+    bool fps_enabled;
 
-    int mem_usage;
-    int old_mem_usage;
+    uint64_t mem_usage;
+    uint64_t old_mem_usage;
 };
 
 //-----------------------------------------------
@@ -165,26 +154,31 @@ int _kbhit();
 
 void zenithra_signal_handle(int sig);
 void zenithra_free(struct InEngineData *engine_data_str, void **pp, size_t size);
-struct InEngineData *zenithra_init(int X, int Y);
+struct InEngineData *zenithra_init(int x, int y, int flags, char *font_path, int font_size);
 void zenithra_destroy(struct InEngineData *engine_data_str);
 void zenithra_critical_error_occured(struct InEngineData *engine_data_str,
     char *file_name,
     int line,
     const char *error);
-bool zenithra_initialize_sdl(struct InEngineData *engine_data_str);
-void zenithra_init_keys(struct InEngineData *engine_data_str);
+void zenithra_initialize_sdl(struct InEngineData *engine_data_str);
 void zenithra_disable_bypass_compositor(SDL_Window *window);
-void *zenithra_malloc(struct InEngineData *engine_data_str, size_t size);
+void *zenithra_malloc(struct InEngineData *engine_data_str, size_t size, char *_file, int _line);
 void zenithra_check_and_display_memory_change(struct InEngineData *engine_data_str);
-void *zenithra_realloc(struct InEngineData *engine_data_str, void *p, size_t new_size, size_t old_size);
+void *zenithra_realloc(struct InEngineData *engine_data_str,
+    void *p,
+    size_t new_size,
+    size_t old_size,
+    char *_file,
+    int _line);
+SDL_Texture *zenithra_update_and_display_fps(struct InEngineData *engine_data_str);
+void zenithra_update(struct InEngineData *engine_data_str);
 
 //-----------------------------------------------
 // Movement Funcs
 //-----------------------------------------------
 
 void zenithra_init_movement_vals(struct InEngineData *engine_data_str);
-void zenithra_calc_mouse_movement(struct InEngineData *engine_data_str);
-void zenithra_update_position(struct InEngineData *engine_data_str);
+void zenithra_calculate_yaw_pitch(struct InEngineData *engine_data_str);
 
 //-----------------------------------------------
 // Events Funcs
@@ -196,55 +190,12 @@ bool zenithra_handle_event_poll(struct InEngineData *engine_data_str);
 // Graphics Funcs
 //-----------------------------------------------
 
-void zenithra_create_point_buffer(struct InEngineData *engine_data_str);
 void zenithra_save_points_for_rendering(struct InEngineData *engine_data_str,
     double Xw,
     double Yw,
     double Zw);
-void zenithra_draw(struct InEngineData *engine_data_str);
 int zenithra_load_object(struct InEngineData *engine_data_str, char *file_name);
 void zenithra_destroy_object(struct InEngineData *engine_data_str, int index);
 struct TempNormCoords *
-zenithra_normalize_vertice(struct InEngineData *engine_data_str, double Xw, double Yw, double Zw);
-void zenithra_destroy_point_buffer(struct InEngineData *engine_data_str);
+zenithra_normalize_vertice(struct InEngineData *engine_data_str, double xw, double yw, double zw);
 void zenithra_render_object(struct InEngineData *engine_data_str, int index);
-
-//-----------------------------------------------
-// Editor Funcs
-//-----------------------------------------------
-
-#define START_OF_OBJECT_INDEX 1
-
-int *zenithra_object_ray_intersects_detection(float origin[3], struct InEngineData *engine_data_str);
-
-//-----------------------------------------------
-// Interpreter Funcs
-//-----------------------------------------------
-
-void zenithra_interpreter_begin(struct InEngineData *engine_data_str);
-void zenithra_register_callback(struct InEngineData *engine_data_str,
-    char *callback_name,
-    char *callback_request);
-void zenithra_interpreter_loop(struct InEngineData *engine_data_str);
-void zenithra_read_command(struct InEngineData *engine_data_str, char *file_name);
-void zenithra_interpreter_check_commands(struct InEngineData *engine_data_str, char *file_name);
-void zenithra_interpreter_run_through(struct InEngineData *engine_data_str, char *file_name);
-void zenithra_interpreter_free_variable_list(struct InEngineData *engine_data_str,
-    struct InterpreterVariable **head);
-struct InterpreterVariable *zenithra_interpreter_create_variable_node(struct InEngineData *engine_data_str);
-struct InterpreterVariable *zenithra_interpreter_match_variable_name(struct InEngineData *engine_data_str,
-    char *variable_name);
-
-//-----------------------------------------------
-// Interpreter commands Funcs
-//-----------------------------------------------
-
-void zenithra_interpreter_command_register_variable(struct InEngineData *engine_data_str, char *file_name);
-void zenithra_interpreter_command_call_script(struct InEngineData *engine_data_str, char *file_name);
-void zenithra_interpreter_update_variable(struct InEngineData *engine_data_str, char *file_name);
-
-//-----------------------------------------------
-// Deprecated
-//-----------------------------------------------
-
-uint64_t zenithra_8_byte_to_int(char *str);

@@ -8,11 +8,11 @@ CFLAGS_WIN = -D__USE_MINGW_ANSI_STDIO=1 -D_WIN32 -g -Wall
 SDL_FLAGS_LINUX = $(shell sdl2-config --cflags --libs)
 SDL_FLAGS_WIN = $(shell /usr/x86_64-w64-mingw32/bin/sdl2-config --cflags --libs)
 
-LDFLAGS_LINUX = -rdynamic $(SDL_FLAGS_LINUX) -lm -lX11 -O3 -march=native
+LDFLAGS_LINUX = -rdynamic $(SDL_FLAGS_LINUX) -lm -lX11 -lSDL2_ttf -O3 -march=native
 LDFLAGS_WIN = -lmingw32 $(SDL_FLAGS_WIN) -lmsvcrt -O3 -march=native
 
 # Source files
-SRC = zenithra_main zenithra_core zenithra_debug zenithra_movement zenithra_events zenithra_graphics zenithra_editor zenithra_interpreter zenithra_interpreter_commands
+SRC = zenithra_main zenithra_core zenithra_debug zenithra_movement zenithra_events zenithra_graphics
 
 SRC_DIR = dev/src
 OBJ_LINUX = $(addprefix $(SRC_DIR)/, $(addsuffix .o, $(SRC)))

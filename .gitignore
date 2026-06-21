@@ -2,6 +2,7 @@
 main
 dev/zenithra_log.txt
 dev/src/*.o
+<<<<<<< HEAD
 SDL2.dll
 cube.zbj
 dev/ZE.sublime-project
@@ -10,3 +11,5 @@ dev/compile_flags.txt
 dev/objectformatter/formatter
 dev/objectformatter/formatter.c
 line.zbj
+=======
+>>>>>>> private/engine-retro

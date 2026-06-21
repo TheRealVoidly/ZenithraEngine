@@ -1,7 +1,9 @@
 #include "zenithra_core.h"
 #include <signal.h>
 
-bool DEV_MODE = false;
+bool program_should_quit = false;
+bool _dev_mode = false;
+bool _x11 = false;
 
 /**
  * Initializes the engine.
@@ -18,7 +20,7 @@ bool DEV_MODE = false;
  * terminate.
  **/
 
-struct InEngineData *zenithra_init(int X, int Y) {
+struct InEngineData *zenithra_init(int x, int y, int flags, char *font_path, int font_size) {
     signal(SIGSEGV, zenithra_signal_handle);
     signal(SIGINT, zenithra_signal_handle);
     signal(SIGTERM, zenithra_signal_handle);
@@ -33,48 +35,38 @@ struct InEngineData *zenithra_init(int X, int Y) {
     engine_data_str->mem_usage = 0;
     engine_data_str->old_mem_usage = 0;
 
-    engine_data_str->SDL = zenithra_malloc(engine_data_str, sizeof *engine_data_str->SDL);
-    if (!engine_data_str->SDL) {
-        zenithra_critical_error_occured(
-            engine_data_str, __FILE__, __LINE__, "engine_data_str->SDL memmory alloc failed");
-    }
+    engine_data_str->SDL = zenithra_malloc(engine_data_str, sizeof *engine_data_str->SDL, __FILE__, __LINE__);
 
-    engine_data_str->MOVE = zenithra_malloc(engine_data_str, sizeof *engine_data_str->MOVE);
-    if (!engine_data_str->MOVE) {
-        zenithra_critical_error_occured(
-            engine_data_str, __FILE__, __LINE__, "engine_data_str->MOVE memmory alloc failed");
-    }
+    engine_data_str->MOVE =
+        zenithra_malloc(engine_data_str, sizeof *engine_data_str->MOVE, __FILE__, __LINE__);
 
-    engine_data_str->KEYS = zenithra_malloc(engine_data_str, sizeof *engine_data_str->KEYS);
-    if (!engine_data_str->KEYS) {
-        zenithra_critical_error_occured(
-            engine_data_str, __FILE__, __LINE__, "engine_data_str->KEYS memmory alloc failed");
-    }
+    engine_data_str->TIMER =
+        zenithra_malloc(engine_data_str, sizeof *engine_data_str->TIMER, __FILE__, __LINE__);
 
-    engine_data_str->INTERPRETER = zenithra_malloc(engine_data_str, sizeof *engine_data_str->INTERPRETER);
-    if (!engine_data_str->INTERPRETER) {
-        zenithra_critical_error_occured(
-            engine_data_str, __FILE__, __LINE__, "engine_data_str->INTERPRETER memmory alloc failed");
-    }
-
-    engine_data_str->focus_lost = false; // Window starts in focus
+    engine_data_str->focus_lost = false;  // Window starts in focus
+    engine_data_str->fps_enabled = false; // FPS counter invisible
 
     zenithra_log_msg("Zenithra engine started");
 
-    engine_data_str->window_X = X;
-    engine_data_str->window_Y = Y;
+    engine_data_str->window_x = x;
+    engine_data_str->window_y = y;
 
-    DEV_CONSOLE_CREATE; // Creates developer console if DEV_MODE is true. Only on Windows
-
-    if (!zenithra_initialize_sdl(engine_data_str)) {
-        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, "Failed to initialize SDL");
-    } else {
-        zenithra_log_msg("SDL initialized successfully");
+    if (flags & DEV_MODE) {
+        _dev_mode = true;
+        DEV_CONSOLE_CREATE // Creates developer console if DEV_MODE is set. Only on Windows
     }
 
+    zenithra_initialize_sdl(engine_data_str);
+    zenithra_log_msg("SDL initialized successfully");
+
+    engine_data_str->font = TTF_OpenFont(font_path, font_size);
+    if (!engine_data_str->font) {
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, TTF_GetError());
+    }
+    zenithra_log_msg("Font initialized successfully");
+
     zenithra_init_movement_vals(engine_data_str);
-    zenithra_init_keys(engine_data_str);
-    zenithra_create_point_buffer(engine_data_str);
+    engine_data_str->TIMER->update_old_time = time(NULL);
 
     engine_data_str->obj_number = 0;
 
@@ -83,7 +75,7 @@ struct InEngineData *zenithra_init(int X, int Y) {
     return engine_data_str;
 }
 
-bool zenithra_initialize_sdl(struct InEngineData *engine_data_str) {
+void zenithra_initialize_sdl(struct InEngineData *engine_data_str) {
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
@@ -91,29 +83,39 @@ bool zenithra_initialize_sdl(struct InEngineData *engine_data_str) {
     engine_data_str->SDL->window = SDL_CreateWindow("Zenithra Engine",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        engine_data_str->window_X,
-        engine_data_str->window_Y,
+        engine_data_str->window_x,
+        engine_data_str->window_y,
         SDL_WINDOW_SHOWN);
-    if (engine_data_str->SDL->window == NULL) {
+    if (!engine_data_str->SDL->window) {
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
+
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
 
     engine_data_str->SDL->renderer =
         SDL_CreateRenderer(engine_data_str->SDL->window, -1, SDL_RENDERER_ACCELERATED);
-    if (engine_data_str->SDL->renderer == NULL) {
+    if (!engine_data_str->SDL->renderer) {
         zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, SDL_GetError());
     }
     SDL_GetRendererOutputSize(
-        engine_data_str->SDL->renderer, &engine_data_str->renderer_X, &engine_data_str->renderer_Y);
+        engine_data_str->SDL->renderer, &engine_data_str->renderer_x, &engine_data_str->renderer_y);
 
-#ifdef __linux__
-    zenithra_disable_bypass_compositor(engine_data_str->SDL->window);
-#endif
+    if (_x11) {
+        zenithra_disable_bypass_compositor(engine_data_str->SDL->window);
+    }
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
     SDL_SetRenderDrawBlendMode(engine_data_str->SDL->renderer, SDL_BLENDMODE_BLEND);
 
-    return true;
+    engine_data_str->frame_texture = SDL_CreateTexture(engine_data_str->SDL->renderer,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        engine_data_str->renderer_x,
+        engine_data_str->renderer_y);
+
+    if (TTF_Init() == -1) {
+        zenithra_critical_error_occured(engine_data_str, __FILE__, __LINE__, TTF_GetError());
+    }
 }
 
 /**
@@ -129,26 +131,24 @@ void zenithra_destroy(struct InEngineData *engine_data_str) {
     SDL_SetRelativeMouseMode(SDL_FALSE);
     SDL_SetWindowGrab(engine_data_str->SDL->window, SDL_FALSE);
 
+    SDL_DestroyTexture(engine_data_str->frame_texture);
     SDL_DestroyRenderer(engine_data_str->SDL->renderer);
     SDL_DestroyWindow(engine_data_str->SDL->window);
 
+    TTF_CloseFont(engine_data_str->font);
+
+    TTF_Quit();
     SDL_Quit();
 
     zenithra_destroy_object(engine_data_str, -1);
 
-    zenithra_destroy_point_buffer(engine_data_str);
-
-    free(engine_data_str->INTERPRETER->command);
-    zenithra_interpreter_free_variable_list(engine_data_str, (void *)&engine_data_str->INTERPRETER->iv);
+    zenithra_free(engine_data_str, (void **)&engine_data_str->TIMER, sizeof *engine_data_str->TIMER);
     zenithra_free(engine_data_str, (void **)&engine_data_str->MOVE, sizeof *engine_data_str->MOVE);
     zenithra_free(engine_data_str, (void **)&engine_data_str->SDL, sizeof *engine_data_str->SDL);
-    zenithra_free(
-        engine_data_str, (void **)&engine_data_str->INTERPRETER, sizeof *engine_data_str->INTERPRETER);
-    zenithra_free(engine_data_str, (void **)&engine_data_str->KEYS, sizeof *engine_data_str->KEYS);
 
     zenithra_check_and_display_memory_change(engine_data_str);
 
-    zenithra_free(engine_data_str, (void **)&engine_data_str, sizeof *engine_data_str);
+    free(engine_data_str);
 
     zenithra_log_msg("Zenithra exited successfully");
 }
@@ -243,22 +243,7 @@ void zenithra_signal_handle(int sig) {
     }
 }
 
-void zenithra_init_keys(struct InEngineData *engine_data_str) { engine_data_str->KEYS->escape = false; }
-
 #ifdef __linux__
-
-/**
- * Function defined only for Linux
- * Handles real-time console input
- **/
-
-int _kbhit() {
-    struct timeval tv = {0L, 0L};
-    fd_set fds;
-    FD_ZERO(&fds);
-    FD_SET(0, &fds); // File descriptor 0 = stdin
-    return select(1, &fds, NULL, NULL, &tv);
-}
 
 /**
  * Function defined only for Linux
@@ -292,10 +277,11 @@ void zenithra_disable_bypass_compositor(SDL_Window *window) {
  * Should be used for dynamic allocation instead of malloc for memory logging purposes
  **/
 
-void *zenithra_malloc(struct InEngineData *engine_data_str, size_t size) {
+void *zenithra_malloc(struct InEngineData *engine_data_str, size_t size, char *_file, int _line) {
     void *ret_p;
     ret_p = malloc(size);
     if (!ret_p) {
+        zenithra_critical_error_occured(engine_data_str, _file, _line, "Malloc failed!");
         return NULL;
     }
     engine_data_str->mem_usage += size;
@@ -306,10 +292,16 @@ void *zenithra_malloc(struct InEngineData *engine_data_str, size_t size) {
  * Should be used for dynamic reallocation instead of realloc for memory logging purposes
  **/
 
-void *zenithra_realloc(struct InEngineData *engine_data_str, void *p, size_t new_size, size_t old_size) {
+void *zenithra_realloc(struct InEngineData *engine_data_str,
+    void *p,
+    size_t new_size,
+    size_t old_size,
+    char *_file,
+    int _line) {
     void *ret_p;
     ret_p = realloc(p, new_size);
     if (!ret_p) {
+        zenithra_critical_error_occured(engine_data_str, _file, _line, "Realloc failed!");
         return NULL;
     }
     engine_data_str->mem_usage -= old_size;
@@ -323,9 +315,97 @@ void *zenithra_realloc(struct InEngineData *engine_data_str, void *p, size_t new
 
 void zenithra_check_and_display_memory_change(struct InEngineData *engine_data_str) {
     if (engine_data_str->mem_usage != engine_data_str->old_mem_usage) {
-        if (DEV_MODE) {
+        if (_dev_mode) {
             printf("%f\n", (float)((float)engine_data_str->mem_usage / 1048576.0));
         }
         engine_data_str->old_mem_usage = engine_data_str->mem_usage;
+    }
+}
+
+/**
+ * Fps counter function
+ **/
+
+SDL_Texture *zenithra_update_and_display_fps(struct InEngineData *engine_data_str) {
+    double elapsed_ns, fps;
+
+    SDL_Surface *surf;
+
+    SDL_Texture *tex;
+
+    SDL_Color font_color;
+    font_color.r = 255;
+    font_color.g = 255;
+    font_color.b = 255;
+    font_color.a = 255;
+
+    clock_gettime(CLOCK_MONOTONIC, &engine_data_str->TIMER->fps_cur_time);
+
+    // elapsed time in nanoseconds
+    elapsed_ns =
+        (engine_data_str->TIMER->fps_cur_time.tv_sec - engine_data_str->TIMER->fps_old_time.tv_sec) * 1e9 +
+        (engine_data_str->TIMER->fps_cur_time.tv_nsec - engine_data_str->TIMER->fps_old_time.tv_nsec);
+
+    if (elapsed_ns > 0) {
+        fps = 1e9 / elapsed_ns; // frames per second
+    } else {
+        fps = 0;
+    }
+
+    engine_data_str->TIMER->fps_old_time = engine_data_str->TIMER->fps_cur_time;
+
+    if (time(NULL) - engine_data_str->TIMER->update_old_time >= 1) {
+        engine_data_str->TIMER->update_old_time = time(NULL);
+        char fps_string[256];
+
+        sprintf(fps_string, "%.f", fps);
+        surf = TTF_RenderUTF8_Solid(engine_data_str->font, fps_string, font_color);
+
+        tex = SDL_CreateTextureFromSurface(engine_data_str->SDL->renderer, surf);
+        SDL_FreeSurface(surf);
+        return tex;
+    }
+
+    return NULL;
+}
+
+/**
+ * Function should be called once every iteration of the main loop
+ * Takes care of all engine functionalities
+ **/
+
+void zenithra_update(struct InEngineData *engine_data_str) {
+    SDL_Rect fps_rect; // FPS counter position
+    fps_rect.x = 0;
+    fps_rect.y = 0;
+    fps_rect.w = 80;
+    fps_rect.h = 20;
+
+    SDL_Texture *temp_fps_texture;
+    SDL_Texture *long_fps_texture;
+
+    program_should_quit = zenithra_handle_event_poll(engine_data_str); // Events and inputs
+    zenithra_calculate_yaw_pitch(engine_data_str);
+
+    SDL_RenderClear(engine_data_str->SDL->renderer);
+
+    if (engine_data_str->obj_number > 0) {
+        zenithra_render_object(engine_data_str, 0); // This may be game resposibility, Idk yet
+    }
+
+    if (engine_data_str->fps_enabled) { // FPS counter self explanatory
+        if ((temp_fps_texture = zenithra_update_and_display_fps(engine_data_str))) {
+            SDL_DestroyTexture(long_fps_texture);
+            long_fps_texture = temp_fps_texture;
+        }
+        SDL_RenderCopy(engine_data_str->SDL->renderer, long_fps_texture, NULL, &fps_rect);
+    }
+
+    SDL_RenderPresent(engine_data_str->SDL->renderer); // Render frame
+
+    zenithra_check_and_display_memory_change(engine_data_str); // Memory usage tracking
+
+    if (program_should_quit) {
+        SDL_DestroyTexture(long_fps_texture);
     }
 }

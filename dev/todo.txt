@@ -1,7 +1,0 @@
--------------------------------------------------------
-TODO
--------------------------------------------------------
-
--- In script files make it so NULL represents the value NULL
-
--- Make it so that incorrect usage of command in .zen files doesn't cause undefined behaviour (terminate command on \n)
